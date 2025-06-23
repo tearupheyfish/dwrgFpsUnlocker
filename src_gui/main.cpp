@@ -1,6 +1,7 @@
 #include "fpsdialog.h"
 #include "ui_fpsdialog.h"
-
+#include "update_checker.h"
+#include "updateinformer.h"
 #include "env.h"
 #include "errreport.h"
 
@@ -45,7 +46,7 @@ bool checkload(Ui::dwrgFpsSetter* ui)
             {
                 ui->fpscombox->setCurrentText(QString::number(fps));
                 ui->autoappradio->setChecked(true);
-                dl->dobuttonpress();
+                dl_r->dobuttonpress();
             }
         }
         else
@@ -59,6 +60,7 @@ bool checkload(Ui::dwrgFpsSetter* ui)
 
 int main(int argc, char *argv[])
 {
+
     QApplication a(argc, argv);
 
     QTranslator translator;
@@ -75,13 +77,20 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (!checkload(dl->getui()))
+    if (!checkload(dl_r->getui()))
     {
         QApplication::exit(2);
         exit(2);
     }
 
     w.show();
+
+    UpdateInformer ifm(&w);
+    informer_r = &ifm;
+    ifm.setFixedSize(ifm.width(), ifm.height());
+
+    uc = std::make_unique<UpdateChecker>();
+    uc->checkUpdate();
 
     return a.exec();
 }

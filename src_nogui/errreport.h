@@ -9,6 +9,7 @@
 struct ErrorReporter
 {
     static constexpr char 严重[] = "严重";
+    static constexpr char 警告[] = "警告";
     static auto instance()
     {
         static struct
@@ -16,8 +17,8 @@ struct ErrorReporter
             void receive(const std::string& level, const std::string& msg)
             {
                 std::cerr<<level<<':'<<msg<<std::endl;
-
-                    std::exit(1);
+                getchar();
+                std::exit(1);
             }
         }s;
         return &s;

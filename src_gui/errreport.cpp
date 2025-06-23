@@ -3,7 +3,6 @@
 //
 #include "errreport.h"
 
-
 ErrorReporter* ErrorReporter::instance() {
     static ErrorReporter manager;  // 单例实例
     return &manager;

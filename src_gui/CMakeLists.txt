@@ -6,33 +6,33 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 if(CMAKE_BUILD_TYPE STREQUAL "DEBUG")
-    list(PREPEND CMAKE_PREFIX_PATH "R:/Tofu/Dependencies/Libs/Qt_6.8.3-shared-Debug_msvc2022_64_RP")
+    list(PREPEND CMAKE_PREFIX_PATH "R:/Tofu/Dependencies/Libs/Qt_6.8.3-shared-Debug_msvc2022_64")
 else()
-    list(PREPEND CMAKE_PREFIX_PATH "R:/Tofu/Dependencies/Libs/Qt_6.8.3-shared-Release_msvc2022_64_RP")
+    list(PREPEND CMAKE_PREFIX_PATH "R:/Tofu/Dependencies/Libs/Qt_6.8.3-shared-Release_msvc2022_64")
 endif ()
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Core Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Core Network)
 
 file(GLOB SRC_GUI RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *)
 list(FILTER SRC_GUI EXCLUDE REGEX "^CMakeLists\\.txt$")
 
-file(GLOB CORE RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CORE_DIR}/*)
+file(GLOB COMMON RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${COMMON_DIR}/*)
 
-include_directories(${CORE_DIR} .)
+include_directories(${COMMON_DIR} . )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(dwrgFpsUnlocker
             MANUAL_FINALIZATION
             ${SRC_GUI}
-            ${CORE}
+            ${COMMON}
             ${RES_DIR}/.rc
     )
 endif()
 
 target_compile_definitions(dwrgFpsUnlocker PRIVATE QT_DYNAMIC)
 
-target_link_libraries(dwrgFpsUnlocker PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(dwrgFpsUnlocker PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network)
 
 set_target_properties(dwrgFpsUnlocker PROPERTIES
         ${BUNDLE_ID_OPTION}
@@ -41,17 +41,19 @@ set_target_properties(dwrgFpsUnlocker PROPERTIES
 )
 
 ########################## DEPLOY via INSTALL ###########################
-set(DEPLOY_DIR ${CMAKE_SOURCE_DIR}/deploy)
 
-if (NOT EXISTS ${DEPLOY_DIR})
-    file(MAKE_DIRECTORY ${DEPLOY_DIR})
-endif ()
+
+set(DEPLOY_DIR ${DEPLOY_DIR}/gui) #子目录的变量修改不会传递给父cmake
 
 set(EXECUTABLE_PATH "$<TARGET_FILE:dwrgFpsUnlocker>")
+set(UPDATE_FILEPATH "$<TARGET_FILE:updater>")
 
 add_custom_command(TARGET dwrgFpsUnlocker POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${DEPLOY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${DEPLOY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${EXECUTABLE_PATH} ${DEPLOY_DIR}
-        COMMENT "Copying executable to deploy directory"
+        COMMAND ${CMAKE_COMMAND} -E copy ${UPDATE_FILEPATH} ${DEPLOY_DIR}
+        COMMENT "Ensuring directory and copying executable to deploy directory"
 )
 
 set(DEPLOY_COMMAND "windeployqt \

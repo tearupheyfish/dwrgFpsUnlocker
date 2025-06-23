@@ -4,6 +4,7 @@
 
 #ifndef ERRREPORT_H
 #define ERRREPORT_H
+
 #include <QObject>
 #include <QQueue>
 #include <QMutex>
@@ -12,7 +13,8 @@ class ErrorReporter: public QObject
 {
     Q_OBJECT
 public:
-    static constexpr char 严重[] = "严重";
+    static constexpr char 严重[] = "_(´ཀ`」 ∠)_";
+    static constexpr char 警告[] = "危";
     struct ErrorInfo {
         QString level;
         QString msg;

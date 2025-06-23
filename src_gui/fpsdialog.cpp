@@ -5,7 +5,7 @@
 #include <QTime>
 #include <QRandomGenerator>
 
-Dialog *dl = nullptr;
+Dialog *dl_r = nullptr;
 
 Dialog::Dialog(QWidget *parent)
     : QDialog(parent)
@@ -30,7 +30,7 @@ Dialog::Dialog(QWidget *parent)
 
     connect(ErrorReporter::instance(), &ErrorReporter::report, this, &Dialog::showError);
 
-    dl = this;
+    dl_r = this;
 }
 
 Dialog::~Dialog()

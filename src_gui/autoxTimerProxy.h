@@ -5,7 +5,7 @@
 #ifndef AUTOXTIMERPROXY_H
 #define AUTOXTIMERPROXY_H
 
-#include "fpsSetter.h"
+#include "../common/fpssetter.h"
 #include "errreport.h"
 
 #include <QObject>
