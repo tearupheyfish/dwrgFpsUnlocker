@@ -3,6 +3,8 @@
 
 #include <QDialog>
 #include <QProgressBar>
+#include <QGraphicsOpacityEffect>
+#include <QPropertyAnimation>
 
 namespace Ui {
 class UpdateInformer;
@@ -23,11 +25,18 @@ private:
     Ui::UpdateInformer *ui;
     QProgressBar* progressBar = nullptr;
 
+//    QGraphicsOpacityEffect* opaeff;
+//    QPropertyAnimation *opaanim;
+
 private slots:
     void on_updatebutton_pressed(); // 更新进度条进度
+    void on_manual_button_pressed();
     void update_progress(qint64 bytesReceived, qint64 bytesTotal);
 
     friend class UpdateChecker;
+
+    void showManualButton();
+
 };
 
 #endif // UPDATEINFORMER_H

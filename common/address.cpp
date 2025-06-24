@@ -2,6 +2,7 @@
 // Created by Tofu on 25-6-16.
 //
 
+#include "winapiutil.h"
 #include "fpssetter.h"
 #include "errreport.h"
 

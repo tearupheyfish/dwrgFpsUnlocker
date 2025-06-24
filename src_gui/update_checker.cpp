@@ -12,52 +12,88 @@
 #include <QProcess>
 #include <QMessageBox>
 #include <QDir>
+#include <QApplication>
+
+struct Version{
+    uint8_t major;
+    uint8_t minor;
+
+    Version(const QString& vstr)
+    {
+        QString numStr = vstr.mid(1); // Remove 'v'
+        major = numStr.section('.', 0, 0).toInt();
+        minor = numStr.section('.', 1).section('-', 0, 0).toInt();
+    }
+    Version(const std::string& vstr)
+    :Version(QString::fromStdString(vstr))
+    {}
+
+    bool operator <(const Version& right)const
+    {
+        return major != right.major ? major < right.major : minor < right.minor;
+    }
+    bool operator >(const Version& right)const
+    {
+        return major != right.major ? major > right.major : minor > right.minor;
+    }
+
+    operator QString()const{
+        return QString("v%1.%2").arg(major).arg(minor);
+    }
+};
 
 
 void UpdateChecker::checkUpdate() {
     // 示例：repo = "yourusername/yourrepo"
-    QUrl url("https://api.github.com/repos/tearupheyfish/dwrgFpsUnlocker/releases/latest");
+    QUrl url("https://api.github.com/repos/tearupheyfish/dwrgFpsUnlocker/releases");
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::UserAgentHeader, "dwrgFpsUnlocker(Windows 10; x64)"); // GitHub 要求
 
     QNetworkReply* reply = manager->get(request);
 
     connect(reply, &QNetworkReply::errorOccurred, [=]() {
-        QMetaObject::invokeMethod(qApp, [&reply](){
-            ErrorReporter::instance()->receive("检查更新", reply->errorString());
-        });
+        ErrorReporter::instance()->receive(ErrorReporter::警告, "检查更新失败");
+        reply->deleteLater();
     });
 
     connect(reply, &QNetworkReply::finished, this, [=]() {
-        if (reply->error()) {
-            qWarning() << "Update check failed:" << reply->errorString();
-            reply->deleteLater();
-            return;
-        }
 
         QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
-        QJsonObject obj = doc.object();
+        QJsonArray releases =doc.array();
 
-        QString latestVersion = obj["tag_name"].toString().section('-', 0, 0); // 例如 v1.2
-        QString currentVersion = VERSION_STRING; // 你的当前版本（也可以从宏里读取）
+//        QJsonObject obj = doc.object();
+
+        Version currentVersion = std::string(VERSION_STRING); // 你的当前版本（也可以从宏里读取）
+        Version latestVersion = currentVersion;
+
+        for(const QJsonValue &releaseVal: releases) {
+            QJsonObject releaseObj = releaseVal.toObject();
+            if(releaseObj[RELEASE_TYPE].toBool()) {
+                Version version = releaseObj["tag_name"].toString().section('-', 0, 0);
+                if(version > latestVersion) {
+                    latestVersion = version;
+
+                    QJsonArray assets = releaseObj["assets"].toArray();
+                    for (const QJsonValue &assetVal : assets) {
+                        QJsonObject asset = assetVal.toObject();
+                        if (asset["name"].toString() == "dwrgFpsUnlocker.zip") { // 替换为你的预期文件名
+                            downloadurl = asset["browser_download_url"].toString();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
         if (latestVersion > currentVersion) {
             qDebug() << "Update available:" << latestVersion;
 
-            QJsonArray assets = obj["assets"].toArray();
-            for (const QJsonValue &assetVal: assets) {
-                QJsonObject asset = assetVal.toObject();
-                QString name = asset["name"].toString();
-
-                if (name == "dwrgFpsUnlocker.zip") {
-                    downloadurl = asset["browser_download_url"].toString();
-                    break;
-                }
-            }
-
             QMetaObject::invokeMethod(qApp, [&latestVersion](){
                 informer_r->set_version(latestVersion);
                 informer_r->show();
+
+                informer_r->raise();
+                QApplication::alert(informer_r);
             });
 
         } else {
@@ -86,8 +122,9 @@ void UpdateChecker::downloadPacakge(const QString &url, const QString &filename)
     }
 
     connect(reply, &QNetworkReply::errorOccurred, [=](QNetworkReply::NetworkError error) {
-        qWarning() << "Download failed:" << reply->errorString();
-        ErrorReporter::instance()->receive("下载失败", reply->errorString());
+        QMetaObject::invokeMethod(qApp, [](){
+            informer_r->showManualButton();
+        });
         reply->deleteLater();
         file->deleteLater();
     });
@@ -101,8 +138,11 @@ void UpdateChecker::downloadPacakge(const QString &url, const QString &filename)
     connect(reply, &QNetworkReply::finished, [=]() {
         file->flush();
         file->close();
-        reply->deleteLater();
         file->deleteLater();
+        reply->deleteLater();
+
+        if(reply->error() != QNetworkReply::NoError)
+            return;
 
         if (!QFile::exists(QDir::currentPath() + "/updater.exe"))
         {

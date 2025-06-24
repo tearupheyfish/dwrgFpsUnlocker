@@ -6,9 +6,9 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 if(CMAKE_BUILD_TYPE STREQUAL "DEBUG")
-    list(PREPEND CMAKE_PREFIX_PATH "R:/Tofu/Dependencies/Libs/Qt_6.8.3-shared-Debug_msvc2022_64")
+    list(PREPEND CMAKE_PREFIX_PATH "R:/Tofu/Dependencies/Libs/Qt_6.8.3-shared-Debug_msvc2022_64_RP")
 else()
-    list(PREPEND CMAKE_PREFIX_PATH "R:/Tofu/Dependencies/Libs/Qt_6.8.3-shared-Release_msvc2022_64")
+    list(PREPEND CMAKE_PREFIX_PATH "R:/Tofu/Dependencies/Libs/Qt_6.8.3-shared-Release_msvc2022_64_RP")
 endif ()
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Core Network)

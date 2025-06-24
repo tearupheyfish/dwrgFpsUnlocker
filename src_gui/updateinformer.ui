@@ -6,21 +6,49 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>173</width>
-    <height>36</height>
+    <width>168</width>
+    <height>34</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>更新！</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">
+ QPushButton {
+    border: 1px solid;
+	background-color:#ffffff
+}
+
+QPushButton:hover {
+
+	background-color:#cccccc
+}
+
+QPushButton::pressed
+{
+	border: none;
+	background-color: #999999;
+}
+</string>
+  </property>
   <widget class="QPushButton" name="updatebutton">
    <property name="geometry">
     <rect>
      <x>90</x>
-     <y>10</y>
+     <y>8</y>
      <width>68</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>微软雅黑</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
    </property>
    <property name="text">
     <string>下载并安装</string>
@@ -31,12 +59,43 @@
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>49</width>
+     <width>44</width>
      <height>14</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <family>微软雅黑</family>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
    <property name="text">
-    <string/>
+    <string>v2.1</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="manual_button">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>8</y>
+     <width>68</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>微软雅黑</family>
+     <pointsize>8</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <property name="text">
+    <string>还是我来罢</string>
    </property>
   </widget>
  </widget>

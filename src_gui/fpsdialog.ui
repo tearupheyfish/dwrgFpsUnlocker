@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>211</width>
-    <height>48</height>
+    <height>50</height>
    </rect>
   </property>
   <property name="font">
@@ -92,7 +92,7 @@
 }
 
 QPushButton:hover {
-<!--    border: 2px solid #0078d7; /* 天蓝色边框 */-->
+
 	background-color:#cccccc
 }
 
@@ -124,6 +124,31 @@ QPushButton::pressed
    </property>
    <property name="text">
     <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="version">
+   <property name="geometry">
+    <rect>
+     <x>164</x>
+     <y>38</y>
+     <width>32</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+     <pointsize>7</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color:grey</string>
+   </property>
+   <property name="text">
+    <string>v2.0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
    </property>
   </widget>
  </widget>

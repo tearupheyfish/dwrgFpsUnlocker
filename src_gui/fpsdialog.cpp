@@ -13,6 +13,7 @@ Dialog::Dialog(QWidget *parent)
     ,keepupdate(false)
 {
     ui->setupUi(this);
+
     ui->fpscombox->setEditable(true);
 
     frupdatereminder = new QTimer(ui->curframerate);
@@ -30,6 +31,7 @@ Dialog::Dialog(QWidget *parent)
 
     connect(ErrorReporter::instance(), &ErrorReporter::report, this, &Dialog::showError);
 
+    ui->version->setText(VERSION_STRING);
     dl_r = this;
 }
 

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(dwrgFpsUnlocker VERSION 2.0 LANGUAGES CXX)
+set(RELEASE_TYPE prerelease)
 
 configure_file(
         ${CMAKE_SOURCE_DIR}/resource/macroes.h.in
