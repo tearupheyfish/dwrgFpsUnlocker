@@ -10,6 +10,7 @@
 
 #include <string>
 #include <iostream>
+#include <cstdint>
 
 inline std::wstring ConvertToWString(const char* str) {
     if (!str) return L"";
@@ -53,82 +54,10 @@ inline uintptr_t GetModuleBaseAddress(DWORD processId, const char* moduleName) {
     return moduleBaseAddress;
 }
 
-inline uintptr_t GetProcAddressEx(HANDLE hProcess, uintptr_t moduleBase, const char* symbolName) {
-    // 读取 DOS 头 (IMAGE_DOS_HEADER)
-    IMAGE_DOS_HEADER dosHeader = { 0 };
-    SIZE_T bytesRead = 0;
-    if (!ReadProcessMemory(hProcess, (LPCVOID)moduleBase, &dosHeader, sizeof(IMAGE_DOS_HEADER), &bytesRead) || bytesRead != sizeof(IMAGE_DOS_HEADER)) {
-        return 0;
-    }
+uintptr_t getProcAddressEx(HANDLE hProcess, uintptr_t moduleBase, const char* symbolName);
+uintptr_t getProcAddressExBuffered(HANDLE hProcess, uintptr_t moduleBase, const char* symbolName);
 
-    // 验证 DOS 头
-    if (dosHeader.e_magic != IMAGE_DOS_SIGNATURE) {
-        return 0;
-    }
+bool ModifyMappedData(const std::string& filePath, uintptr_t targetAddress, uintptr_t newValue);
 
-    // 读取 NT 头 (IMAGE_NT_HEADERS)
-    IMAGE_NT_HEADERS ntHeaders = { 0 };
-    uintptr_t ntHeaderAddr = moduleBase + dosHeader.e_lfanew;
-    if (!ReadProcessMemory(hProcess, (LPCVOID)ntHeaderAddr, &ntHeaders, sizeof(IMAGE_NT_HEADERS), &bytesRead) || bytesRead != sizeof(IMAGE_NT_HEADERS)) {
-        return 0;
-    }
-
-    // 验证 NT 头
-    if (ntHeaders.Signature != IMAGE_NT_SIGNATURE) {
-        return 0;
-    }
-
-    // 获取导出表的 RVA
-    IMAGE_DATA_DIRECTORY exportDirectoryData = ntHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
-    if (exportDirectoryData.Size == 0) {
-        return 0; // 没有导出表
-    }
-
-    // 读取导出表
-    IMAGE_EXPORT_DIRECTORY exportDirectory = { 0 };
-    uintptr_t exportTableAddr = moduleBase + exportDirectoryData.VirtualAddress;
-    if (!ReadProcessMemory(hProcess, (LPCVOID)exportTableAddr, &exportDirectory, sizeof(IMAGE_EXPORT_DIRECTORY), &bytesRead) || bytesRead != sizeof(IMAGE_EXPORT_DIRECTORY)) {
-        return 0;
-    }
-
-    // 遍历导出函数名称表
-    DWORD nameCount = exportDirectory.NumberOfNames;
-    DWORD nameTableRVA = exportDirectory.AddressOfNames;
-    DWORD funcTableRVA = exportDirectory.AddressOfFunctions;
-    DWORD nameOrdinalTableRVA = exportDirectory.AddressOfNameOrdinals;
-
-    for (DWORD i = 0; i < nameCount; ++i) {
-        // 读取导出名称的 RVA
-        DWORD nameRVA = 0;
-        if (!ReadProcessMemory(hProcess, (LPCVOID)(moduleBase + nameTableRVA + i * sizeof(DWORD)), &nameRVA, sizeof(DWORD), &bytesRead) || bytesRead != sizeof(DWORD)) {
-            continue;
-        }
-
-        // 读取符号名称
-        char symbolBuffer[256] = { 0 };
-        if (!ReadProcessMemory(hProcess, (LPCVOID)(moduleBase + nameRVA), symbolBuffer, sizeof(symbolBuffer), &bytesRead)) {
-            continue;
-        }
-
-        // 比较导出符号名称
-        if (std::string(symbolBuffer) == symbolName) {
-            // 符号匹配，获取对应函数地址的 RVA
-            WORD ordinalIndex = 0;
-            if (!ReadProcessMemory(hProcess, (LPCVOID)(moduleBase + nameOrdinalTableRVA + i * sizeof(WORD)), &ordinalIndex, sizeof(WORD), &bytesRead) || bytesRead != sizeof(WORD)) {
-                return 0;
-            }
-
-            DWORD funcRVA = 0;
-            if (!ReadProcessMemory(hProcess, (LPCVOID)(moduleBase + funcTableRVA + ordinalIndex * sizeof(DWORD)), &funcRVA, sizeof(DWORD), &bytesRead) || bytesRead != sizeof(DWORD)) {
-                return 0;
-            }
-
-            // 计算函数的绝对地址
-            return moduleBase + funcRVA;
-        }
-    }
-
-    return 0; // 找不到符号
-}
 
 #endif //DWRGFPSUNLOCKER_WINAPIUTIL_H

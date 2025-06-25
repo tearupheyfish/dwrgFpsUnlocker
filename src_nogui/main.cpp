@@ -100,8 +100,6 @@ int main()
         return 0;               // 超时退出
     }
 
-
-
     setter.setFps(fps);
     cycle_print_fps();
 

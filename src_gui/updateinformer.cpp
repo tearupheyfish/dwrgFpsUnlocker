@@ -59,7 +59,18 @@ void UpdateInformer::switch_to_progress_bar()
 }
 
 void UpdateInformer::update_progress(qint64 bytesReceived, qint64 bytesTotal) {
-    progressBar->setValue(bytesTotal ? bytesReceived * 100 / bytesTotal : 0);
+    auto val = bytesTotal ? bytesReceived * 100 / bytesTotal : 0;
+    progressBar->setValue(val);
+    if(speedcheck == true)
+    {
+        if(bytesReceived/10.f/1024 < 50)
+            showManualButton();
+        speedcheck = false;
+    }
+    if(!ui->manual_button->isHidden() && val > 50)
+    {
+        hideManualButton();
+    }
 }
 
 void UpdateInformer::on_manual_button_pressed() {
@@ -72,6 +83,10 @@ void UpdateInformer::showManualButton() {
     ui->manual_button->show();
     ui->manual_button->raise();
 //    opaanim->start(QAbstractAnimation::DeleteWhenStopped);
+}
+
+void UpdateInformer::hideManualButton() {
+    ui->manual_button->hide();
 }
 
 

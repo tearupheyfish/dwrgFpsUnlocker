@@ -2,12 +2,14 @@
 // Created by Tofu on 25-6-16.
 //
 
+#include <filesystem>
 #include "winapiutil.h"
 #include "fpssetter.h"
 #include "errreport.h"
 
-     bool FpsSetter::getAddress()
+    bool FpsSetter::getAddress()
     {
+        static const char func_name[256] = "PyOS_ReadlineFunctionPointer";
 
         moduleBase = GetModuleBaseAddress(processID, targetModuleName);
         if (!moduleBase) {
@@ -19,14 +21,25 @@
         std::cout << "dll基址: " << std::hex << moduleBase <<'\n';
 #endif
 
-        if (!ReadProcessMemory(processHandle, (LPCVOID)(moduleBase + DYRCX_P_OFFSET), &dyrcx, sizeof(dyrcx),
+        funcaddr = getProcAddressExBuffered(processHandle, moduleBase, "PyOS_ReadlineFunctionPointer");
+        if(!funcaddr)
+        {
+            ErrorReporter::instance()->receive(ErrorReporter::严重,"无法查询符号");
+            bad = true;
+            return false;
+        }
+#ifdef _DEBUG
+        std::cout<< "符号地址：" << std::hex<< funcaddr<< '\n';
+#endif
+
+        if (!ReadProcessMemory(processHandle, (LPCVOID)(DYRCX_P_OFFSET), &dyrcx, sizeof(dyrcx),
                                nullptr))
         {
             ErrorReporter::instance()->receive(ErrorReporter::严重,"无法获取数组指针");
             bad = true;
             return false;
         }
-        // dyrcx = moduleBase + 0x5B85D58;AI你怎么来的
+
         if (!ReadProcessMemory(processHandle, (LPCVOID)(dyrcx + DYRCX_O_OFFSET), &dyrcx, sizeof(dyrcx),
                                nullptr))
         {
@@ -46,7 +59,7 @@
             else{
                 if(checkfr < 15 || checkfr > 75)
                 {
-                    ErrorReporter::instance()->receive("检查", ("可疑的帧数值"+std::to_string(checkfr)).c_str());
+                    ErrorReporter::instance()->receive("可疑", ("帧率值"+std::to_string(checkfr)+"，尝试修复").c_str());
                 }
             }
         }
@@ -58,6 +71,7 @@
         }
         else
             std::cout << "帧率地址: " << std::hex << preframerateaddr+FR_OFFSET << '\n';
+
         return true;
     }
 

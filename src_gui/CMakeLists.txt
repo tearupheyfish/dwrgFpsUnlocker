@@ -47,12 +47,14 @@ set(DEPLOY_DIR ${DEPLOY_DIR}/gui) #子目录的变量修改不会传递给父cma
 
 set(EXECUTABLE_PATH "$<TARGET_FILE:dwrgFpsUnlocker>")
 set(UPDATE_FILEPATH "$<TARGET_FILE:updater>")
+#set(TRYFIX_FILEPATH "$<TARGET_FILE:tryfix>")
 
 add_custom_command(TARGET dwrgFpsUnlocker POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${DEPLOY_DIR}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${DEPLOY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${EXECUTABLE_PATH} ${DEPLOY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${UPDATE_FILEPATH} ${DEPLOY_DIR}
+#        COMMAND ${CMAKE_COMMAND} -E copy ${TRYFIX_FILEPATH} ${DEPLOY_DIR}
         COMMENT "Ensuring directory and copying executable to deploy directory"
 )
 

@@ -25,6 +25,8 @@ private:
     Ui::UpdateInformer *ui;
     QProgressBar* progressBar = nullptr;
 
+    bool speedcheck = false;
+
 //    QGraphicsOpacityEffect* opaeff;
 //    QPropertyAnimation *opaanim;
 
@@ -36,6 +38,7 @@ private slots:
     friend class UpdateChecker;
 
     void showManualButton();
+    void hideManualButton();
 
 };
 

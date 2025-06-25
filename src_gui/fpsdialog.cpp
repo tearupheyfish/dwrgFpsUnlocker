@@ -1,6 +1,8 @@
 #include "ui_fpsdialog.h"
 #include "fpsdialog.h"
 #include "env.h"
+#include "fpssetter.h"
+
 #include <QMessageBox>
 #include <QTime>
 #include <QRandomGenerator>
@@ -60,12 +62,23 @@ void Dialog::updateFR()
     ui->curframerate->setText(QString::number(setter->getFps(), 'f', 1));
 }
 
+void bootfixup()
+{
+//    system(("tryfix "+std::to_string(DYRCX_P_OFFSET)+ ' ' + "dwrgFpsUnlocker.exe").c_str());
+}
+
 void Dialog::showError(const ErrorReporter::ErrorInfo& einf)
 {
     QMessageBox::critical(this,
         einf.level,
         einf.msg);
+    if (einf.level == "修复")
+    {
+        atexit(bootfixup);
+            goto quit;
+    }
     if (einf.level == ErrorReporter::严重)
+        quit:
         QApplication::exit(-1);
 }
 

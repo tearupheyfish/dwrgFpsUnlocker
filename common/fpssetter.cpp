@@ -1,19 +1,25 @@
-#include "errreport.h"
-#include "autoxTimerProxy.h"
+#include "fpssetter.h"
 
+#include "autoxTimerProxy.h"
+#include "errreport.h"
 
 #include <QTimer>
 #include <QObject>
+#include <chrono>
 
 FpsSetter::FpsSetter(DWORD pid):
-    bad(false),fpsbad(false),
-    processID(pid),
-    processHandle(nullptr)
+    bad(false),fpsbad(false)
+   ,processID(pid),processHandle(nullptr)
+//   ,dyrcx(NULL), funcaddr(NULL), preframerateaddr(NULL)
 {
     autoxprocesstimer = new autoxTimerProxy(*this);
     openHandle();
-    //
+
+//    auto t = std::chrono::high_resolution_clock::now();
     getAddress();
+//    auto dulation = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - t).count();
+//    std::cout<<std::dec<<dulation<<" microseconds\n";
+
     continueautox();//默认自动close
 /*    //句柄实际上就是模块的装入地址
     HMODULE moduleHandle = reinterpret_cast<HMODULE>(moduleBase);
@@ -105,13 +111,5 @@ void FpsSetter::pauseautox()
 void FpsSetter::continueautox()
 {
     autoxprocesstimer->timer.start();
-}
-void setter_friend()
-{
-
-}
-extern "C" void call_setter_friend()
-{
-
 }
 

@@ -18,9 +18,7 @@ Q_OBJECT
     QString downloadurl;
     static const QString filename;
 public:
-    UpdateChecker(QObject* parent = nullptr) : QObject(parent) {
-        manager = new QNetworkAccessManager(this);
-    }
+    UpdateChecker(QObject* parent = nullptr);
 
     void checkUpdate();
 
@@ -28,6 +26,7 @@ public:
 
 private:
     QNetworkAccessManager* manager;
+    QTimer* speedtesttimer;
 
     void downloadPacakge(const QString& url, const QString& filename);
 

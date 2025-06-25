@@ -10,8 +10,7 @@
 
 class autoxTimerProxy;
 
-
-class FpsSetter /*它目前是个抽象类*/
+class FpsSetter
 {
 protected:
 #define JMPLENTH 5
@@ -40,10 +39,10 @@ protected:
     DWORD       processID;
     HANDLE      processHandle;
     uintptr_t   moduleBase;
-//    const char  func_name[256] = "PyOS_ReadlineFunctionPointer";
+    uintptr_t   funcaddr = 0x7ffad6277700;
     uintptr_t   dyrcx;
-#define DYRCX_P_OFFSET   0x7FF9BB257700 - \
-                         0x7FF9B50C0000 + 0xA758
+//    const char  func_name[256] = "PyOS_ReadlineFunctionPointer";
+#define DYRCX_P_OFFSET   funcaddr + 0xA758
 #define DYRCX_O_OFFSET   0x10
 
     uintptr_t   preframerateaddr;

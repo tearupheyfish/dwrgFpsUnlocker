@@ -42,10 +42,29 @@ struct Version{
     }
 };
 
+UpdateChecker::UpdateChecker(QObject *parent) : QObject(parent) {
+    manager = new QNetworkAccessManager(this);
+    speedtesttimer = new QTimer(this);
+    speedtesttimer->setSingleShot(true);
+    speedtesttimer->setInterval(10*1000);
+    connect(speedtesttimer, &QTimer::timeout, [](){
+        if(informer_r->progressBar->value() < 2)
+        {
+            informer_r->showManualButton();
+        }
+    });
+}
 
 void UpdateChecker::checkUpdate() {
     // 示例：repo = "yourusername/yourrepo"
-    QUrl url("https://api.github.com/repos/tearupheyfish/dwrgFpsUnlocker/releases");
+    QUrl url(
+#ifdef PRERELEASE
+    "https://api.github.com/repos/tearupheyfish/dwrgFpsUnlocker/releases"
+#else
+"https://api.github.com/repos/tearupheyfish/dwrgFpsUnlocker/releases/latest"
+#endif
+    );
+
     QNetworkRequest request(url);
     request.setHeader(QNetworkRequest::UserAgentHeader, "dwrgFpsUnlocker(Windows 10; x64)"); // GitHub 要求
 
@@ -53,22 +72,28 @@ void UpdateChecker::checkUpdate() {
 
     connect(reply, &QNetworkReply::errorOccurred, [=]() {
         ErrorReporter::instance()->receive(ErrorReporter::警告, "检查更新失败");
-        reply->deleteLater();
     });
 
     connect(reply, &QNetworkReply::finished, this, [=]() {
 
         QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
-        QJsonArray releases =doc.array();
 
 //        QJsonObject obj = doc.object();
 
         Version currentVersion = std::string(VERSION_STRING); // 你的当前版本（也可以从宏里读取）
         Version latestVersion = currentVersion;
-
+        QJsonArray releases
+#ifdef PRERELEASE
+         = doc.array();
+#else
+        = {doc.object()};
+#endif
         for(const QJsonValue &releaseVal: releases) {
             QJsonObject releaseObj = releaseVal.toObject();
-            if(releaseObj[RELEASE_TYPE].toBool()) {
+#ifdef PRERELEASE
+            if(releaseObj["prerelease"].toBool())
+#endif
+            {
                 Version version = releaseObj["tag_name"].toString().section('-', 0, 0);
                 if(version > latestVersion) {
                     latestVersion = version;
@@ -114,6 +139,7 @@ void UpdateChecker::downloadPacakge(const QString &url, const QString &filename)
 
     QString savePath = saveDir.filePath(filename);
     QNetworkReply* reply = manager->get(QNetworkRequest(QUrl(url)));
+    speedtesttimer->start();
 
     QFile* file = new QFile(savePath);
     if (!file->open(QIODevice::WriteOnly)) {
@@ -125,8 +151,6 @@ void UpdateChecker::downloadPacakge(const QString &url, const QString &filename)
         QMetaObject::invokeMethod(qApp, [](){
             informer_r->showManualButton();
         });
-        reply->deleteLater();
-        file->deleteLater();
     });
 
     connect(reply, &QNetworkReply::readyRead, [=]() {
@@ -189,3 +213,5 @@ void UpdateChecker::Update() {
     informer_r->switch_to_progress_bar();
     downloadPacakge(downloadurl, filename);
 }
+
+
