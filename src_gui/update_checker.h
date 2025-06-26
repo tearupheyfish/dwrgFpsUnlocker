@@ -3,6 +3,7 @@
 #define UPDATE_CHECKER_H
 
 #include "macroes.h"
+#include "updateinformer.h"
 
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -17,13 +18,15 @@ Q_OBJECT
 
     QString downloadurl;
     static const QString filename;
+    UpdateInformer& informer;
 public:
-    UpdateChecker(QObject* parent = nullptr);
+    UpdateChecker(UpdateInformer &ifm, QObject *parent = nullptr);
 
     void checkUpdate();
 
     void Update();
-
+signals:
+    void noUpdateAvailable();
 private:
     QNetworkAccessManager* manager;
     QTimer* speedtesttimer;

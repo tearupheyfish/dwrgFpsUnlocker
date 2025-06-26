@@ -13,7 +13,7 @@
 
         moduleBase = GetModuleBaseAddress(processID, targetModuleName);
         if (!moduleBase) {
-            ErrorReporter::instance()->receive("(oT-T)尸","无法找到模块基址");
+            ErrorReporter::instance()->receive(ErrorReporter::严重,"无法找到模块基址");
             bad = true;
             return false;
         }
@@ -50,19 +50,6 @@
 #ifdef _DEBUG
         std::cout << "动态内存地址: " << std::hex << dyrcx << '\n';
 #endif
-
-        {
-            float checkfr = 0;
-            if (!ReadProcessMemory(processHandle, (LPCVOID) (dyrcx + 0x80), &checkfr, sizeof(checkfr), nullptr))
-            {
-            }
-            else{
-                if(checkfr < 15 || checkfr > 75)
-                {
-                    ErrorReporter::instance()->receive("可疑", ("帧率值"+std::to_string(checkfr)+"，尝试修复").c_str());
-                }
-            }
-        }
 
         if (!ReadProcessMemory(processHandle, (LPCVOID)(dyrcx+PFR_OFFSET), &preframerateaddr, sizeof(preframerateaddr), nullptr))
         {

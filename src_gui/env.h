@@ -5,24 +5,10 @@
 #include "update_checker.h"
 
 #include <QTimer>
-#include <QFile>
+
 #include <memory>
+#include <fstream>
 
-inline std::unique_ptr<FpsSetter> setter;
-inline std::unique_ptr<UpdateChecker> uc;
-
-inline std::shared_ptr<QFile> hipp(
-        new QFile("hipp"),
-        [](QFile*f)
-        {
-                if(f->isOpen())
-                        f->close();
-                delete f;
-        });;//-ocampus
-
-class Dialog;
-extern Dialog* dl_r;
-class UpdateInformer;
-extern UpdateInformer *informer_r;
+inline std::unique_ptr<std::fstream> hipp;
 
 #endif // ENV_H

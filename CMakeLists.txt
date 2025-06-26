@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(dwrgFpsUnlocker VERSION 2.1 LANGUAGES CXX)
+project(dwrgFpsUnlocker VERSION 2.2 LANGUAGES CXX)
 set(RELEASE_TYPE release)
 
 configure_file(

@@ -2,7 +2,7 @@
 // Created by Tofu on 2025/5/15.
 //
 
-#include "../common/fpssetter.h"
+#include "fpssetter.h"
 #include "console_color_mgr.h"
 
 #include <filesystem>

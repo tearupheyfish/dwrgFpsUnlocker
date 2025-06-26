@@ -7,11 +7,8 @@
 #include <QTime>
 #include <QRandomGenerator>
 
-Dialog *dl_r = nullptr;
-
 Dialog::Dialog(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::dwrgFpsSetter)
+    : QDialog(parent), ui(new Ui::dwrgFpsSetter)
     ,keepupdate(false)
 {
     ui->setupUi(this);
@@ -31,15 +28,17 @@ Dialog::Dialog(QWidget *parent)
 
     checkchangePalette();
 
+    ui->version->setText(VERSION_STRING);
+
+    checkload();
+
     connect(ErrorReporter::instance(), &ErrorReporter::report, this, &Dialog::showError);
 
-    ui->version->setText(VERSION_STRING);
-    dl_r = this;
 }
 
 Dialog::~Dialog()
 {
-    if(ui->autoappradio->isChecked() || hipp->exists())
+    if(ui->autoappradio->isChecked() || std::filesystem::exists("./hipp"))
         saveprofile();
     delete ui;
 }
@@ -54,7 +53,7 @@ void Dialog::on_applybutton_pressed()
 void Dialog::on_curframerate_clicked()
 {
     keepupdate = !keepupdate;
-    whilekeepupdatechange();
+    whileKeepUpdateChange();
 }
 
 void Dialog::updateFR()
@@ -69,17 +68,16 @@ void bootfixup()
 
 void Dialog::showError(const ErrorReporter::ErrorInfo& einf)
 {
-    QMessageBox::critical(this,
-        einf.level,
-        einf.msg);
-    if (einf.level == "修复")
-    {
-        atexit(bootfixup);
-            goto quit;
-    }
+    QMessageBox::critical(this,einf.level,einf.msg);
+//    if (einf.level == "修复")
+//    {
+//        atexit(bootfixup);
+//            goto quit;
+//    }
     if (einf.level == ErrorReporter::严重)
-        quit:
-        QApplication::exit(-1);
+    {
+        emit ErrOccured();
+    }
 }
 
 void Dialog::checkchangePalette()
@@ -96,7 +94,7 @@ void Dialog::checkchangePalette()
     ui->curframerate->setPalette(frpalette);
 }
 
-void Dialog::whilekeepupdatechange()
+void Dialog::whileKeepUpdateChange()
 {
     if (keepupdate)
     {
@@ -114,43 +112,82 @@ void Dialog::whilekeepupdatechange()
 void Dialog::set2tempread()
 {
     keepupdate = true;
-    whilekeepupdatechange();
+    whileKeepUpdateChange();
     tmpreadtimer->start();
 }
 
 void Dialog::tempreadreach()
 {
     keepupdate = false;
-    whilekeepupdatechange();
+    whileKeepUpdateChange();
 }
 
 void Dialog::saveprofile()const
 {
-    if(hipp->exists())
+    hipp = std::make_unique<std::fstream>("./hipp", std::ios::out | std::ios::binary);
     {
-        if(hipp->isOpen())
+        if(hipp->is_open())
         {
-            if(hipp->isWritable())
-            {
                 goto rewrite;
-            }
-            hipp->close();
         }
+        goto close;
     }
-openwrite:
-    hipp->open(QIODevice::WriteOnly);
-    if(!hipp->isOpen())
-        ErrorReporter::instance()->receive("出错","无法写入文件");
 rewrite:
-    hipp->seek(0);
+    hipp->seekp(0);
 
-    QDataStream wds(hipp.get());
-    wds<<ui->fpscombox->currentText().toInt();
-    wds<<ui->autoappradio->isChecked();
+    {
+        int fps = ui->fpscombox->currentText().toInt();
+        hipp->write((char *) &fps, sizeof(fps));
+        bool checked = ui->autoappradio->isChecked();
+        hipp->write((char *) &checked, sizeof(checked));
+    }
+close:
+    hipp->close();
 }
 
-Ui::dwrgFpsSetter* Dialog::getui()
-{
-    return ui;
+// 字节序翻转工具函数
+template <typename T>
+T swapEndian(T value) {
+    T swapped = 0;
+    for (std::size_t i = 0; i < sizeof(T); ++i) {
+        swapped |= ((value >> (i * 8)) & 0xFF) << ((sizeof(T) - 1 - i) * 8);
+    }
+    return swapped;
+}
+
+bool Dialog::checkload() {
+    if(std::filesystem::exists(std::filesystem::path("./hipp")))
+    {
+        hipp = std::make_unique<std::fstream>("./hipp", std::ios::in | std::ios::binary);
+        if(hipp->is_open())
+        {
+            int fps;
+            hipp->read((char*)&fps, sizeof(fps));
+
+            bool uselast;
+            hipp->read((char*)&uselast, sizeof(uselast));
+
+            //处理QFile的端序残留问题
+            if(fps > 0x0000FFFF || fps < 0)
+            {
+                fps = swapEndian(fps);
+                uselast = swapEndian(uselast);
+            }
+            if(uselast)
+            {
+//                setFpsValue(fps);
+                ui->fpscombox->setCurrentText(QString::number(fps));
+//                setChecked(uselast);
+                ui->autoappradio->setChecked(uselast);
+            }
+        }
+        else
+        {
+            ErrorReporter::instance()->receive({"错误", "无法访问文件 ./hipp "});
+            return false;
+        }
+        hipp->close();
+    }
+    return true;
 }
 

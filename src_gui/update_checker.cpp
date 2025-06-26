@@ -1,7 +1,7 @@
 #include "env.h"
 
-#include "update_checker.h"
 #include "errreport.h"
+#include "update_checker.h"
 #include "updateinformer.h"
 
 #include <QJsonDocument>
@@ -42,21 +42,22 @@ struct Version{
     }
 };
 
-UpdateChecker::UpdateChecker(QObject *parent) : QObject(parent) {
+UpdateChecker::UpdateChecker(UpdateInformer &ifm, QObject *parent)
+:QObject(parent), informer(ifm)
+{
     manager = new QNetworkAccessManager(this);
     speedtesttimer = new QTimer(this);
     speedtesttimer->setSingleShot(true);
     speedtesttimer->setInterval(10*1000);
-    connect(speedtesttimer, &QTimer::timeout, [](){
-        if(informer_r->progressBar->value() < 2)
+    connect(speedtesttimer, &QTimer::timeout,[this](){
+        if(this->informer.progressBar->value() < 2)
         {
-            informer_r->showManualButton();
+            this->informer.showManualButton();
         }
     });
 }
 
 void UpdateChecker::checkUpdate() {
-    // 示例：repo = "yourusername/yourrepo"
     QUrl url(
 #ifdef PRERELEASE
     "https://api.github.com/repos/tearupheyfish/dwrgFpsUnlocker/releases"
@@ -75,12 +76,18 @@ void UpdateChecker::checkUpdate() {
     });
 
     connect(reply, &QNetworkReply::finished, this, [=]() {
+        if(reply->error() != QNetworkReply::NoError)
+        {
+            reply->deleteLater();
+            emit noUpdateAvailable();
+            return;
+        }
 
         QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
 
 //        QJsonObject obj = doc.object();
 
-        Version currentVersion = std::string(VERSION_STRING); // 你的当前版本（也可以从宏里读取）
+        Version currentVersion = QString(VERSION_STRING); // 你的当前版本（也可以从宏里读取）
         Version latestVersion = currentVersion;
         QJsonArray releases
 #ifdef PRERELEASE
@@ -112,17 +119,14 @@ void UpdateChecker::checkUpdate() {
 
         if (latestVersion > currentVersion) {
             qDebug() << "Update available:" << latestVersion;
+                informer.set_version(latestVersion);
+                informer.show();
 
-            QMetaObject::invokeMethod(qApp, [&latestVersion](){
-                informer_r->set_version(latestVersion);
-                informer_r->show();
-
-                informer_r->raise();
-                QApplication::alert(informer_r);
-            });
-
+                informer.raise();
+                QApplication::alert(&informer);
         } else {
             qDebug() << "Already up to date.";
+            emit noUpdateAvailable();
         }
 
         reply->deleteLater();
@@ -148,16 +152,14 @@ void UpdateChecker::downloadPacakge(const QString &url, const QString &filename)
     }
 
     connect(reply, &QNetworkReply::errorOccurred, [=](QNetworkReply::NetworkError error) {
-        QMetaObject::invokeMethod(qApp, [](){
-            informer_r->showManualButton();
-        });
+            informer.showManualButton();
     });
 
     connect(reply, &QNetworkReply::readyRead, [=]() {
         file->write(reply->readAll());
     });
 
-    connect(reply, &QNetworkReply::downloadProgress, informer_r , &UpdateInformer::update_progress);
+    connect(reply, &QNetworkReply::downloadProgress, &informer , &UpdateInformer::update_progress);
 
     connect(reply, &QNetworkReply::finished, [=]() {
         file->flush();
@@ -193,7 +195,6 @@ void UpdateChecker::downloadPacakge(const QString &url, const QString &filename)
                 nullptr
                 ))
         {
-                    informer_r->close();
                     QCoreApplication::quit(); // 退出当前进程
                     return;
         }
@@ -203,14 +204,13 @@ void UpdateChecker::downloadPacakge(const QString &url, const QString &filename)
         }
 
         manually:
-        informer_r->close();
         QDesktopServices::openUrl(saveDirPath);
         QCoreApplication::quit();
     });
 }
 
 void UpdateChecker::Update() {
-    informer_r->switch_to_progress_bar();
+    informer.switch_to_progress_bar();
     downloadPacakge(downloadurl, filename);
 }
 

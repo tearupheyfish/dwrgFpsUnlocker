@@ -10,11 +10,11 @@
 UpdateInformer *informer_r = nullptr;
 
 UpdateInformer::UpdateInformer(QWidget *parent)
-    : QDialog(parent)
-    , ui(new Ui::UpdateInformer)
+    : QDialog(parent), ui(new Ui::UpdateInformer)
 {
     ui->setupUi(this);
 
+    setFixedSize(width(), height());
 //    opaeff = new QGraphicsOpacityEffect(ui->manual_button);
 //    opaeff->setOpacity(0);
 //    ui->manual_button->setGraphicsEffect(opaeff);
@@ -74,7 +74,7 @@ void UpdateInformer::update_progress(qint64 bytesReceived, qint64 bytesTotal) {
 }
 
 void UpdateInformer::on_manual_button_pressed() {
-    informer_r->close();
+//    emit InformerClose();
     QDesktopServices::openUrl(QUrl("https://github.com/tearupheyfish/dwrgFpsUnlocker/releases"));
 }
 

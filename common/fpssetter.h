@@ -39,7 +39,7 @@ protected:
     DWORD       processID;
     HANDLE      processHandle;
     uintptr_t   moduleBase;
-    uintptr_t   funcaddr = 0x7ffad6277700;
+    uintptr_t   funcaddr;
     uintptr_t   dyrcx;
 //    const char  func_name[256] = "PyOS_ReadlineFunctionPointer";
 #define DYRCX_P_OFFSET   funcaddr + 0xA758
@@ -56,13 +56,20 @@ protected:
 
 public:
     FpsSetter(DWORD pid);
+    FpsSetter():bad(true), fpsbad(true), processHandle(NULL), autoxprocesstimer(nullptr){};
+
+    FpsSetter(const FpsSetter&) = delete;
+    FpsSetter& operator=(const FpsSetter&) = delete;
+
+    FpsSetter(FpsSetter&& right) noexcept;
+    FpsSetter& operator=(FpsSetter&& right) noexcept;
 
     ~FpsSetter();
 
     bool getAddress();
 
     explicit
-    operator bool()const{return bad;}
+    operator bool()const{return !bad;}
 
     bool setFps(int fps);
 
@@ -72,13 +79,7 @@ public:
 
     bool openHandle();
 
-    void closeHandle()
-    {
-        if(processHandle){
-            CloseHandle(processHandle);
-            processHandle = nullptr;
-        }
-    }
+    void closeHandle();
 
     DWORD getprocessID()const
     {
@@ -129,8 +130,6 @@ private:
     // writeMem();
 
     friend class autoxTimerProxy;
-    friend bool getAddressImpl(FpsSetter&);
-
 };
 
 #endif // FPS_SETTER_H

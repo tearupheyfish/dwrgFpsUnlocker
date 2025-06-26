@@ -9,6 +9,8 @@
 
 #include "env.h"
 
+#include "ui_fpsdialog.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class dwrgFpsSetter;
@@ -18,46 +20,60 @@ QT_END_NAMESPACE
 class Dialog : public QDialog
 {
     Q_OBJECT
-
-public:
-    Dialog(QWidget *parent = nullptr);
-    ~Dialog();
-
-    void saveprofile()const;
-    Ui::dwrgFpsSetter *getui();
-
-    void set2tempread();
-    void dobuttonpress()
-    {
-        on_applybutton_pressed();
-    }
-
-private slots:
-    void on_applybutton_pressed();
-    // void on_applybutton_released() = delete;
-    void on_curframerate_clicked();
-
-private:
     Ui::dwrgFpsSetter *ui;
+    FpsSetter* setter;
 
     QTimer *frupdatereminder;
     bool keepupdate;
     QPalette frpalette;
 
     QTimer *tmpreadtimer;
+public:
+    Dialog(QWidget *parent = nullptr);
+    ~Dialog();
+    void setRelativedData(FpsSetter& setter)
+    {
+        this->setter = &setter;
+    }
+    void set2tempread();
+    void dobuttonpress()
+    {
+        on_applybutton_pressed();
+    }
+    void setFpsValue(int fps)
+    {
+        ui->fpscombox->setCurrentText(QString::number(fps));
+    };
+    void setChecked(bool checked)
+    {
+        ui->autoappradio->setEnabled(checked);
+    }
+
+signals:
+    void MainWinClose();
+    void ErrOccured();
+private slots:
+    void on_applybutton_pressed();
+    // void on_applybutton_released() = delete;
+    void on_curframerate_clicked();
+
+    void showError(const ErrorReporter::ErrorInfo& einf);
+
+private:
+    bool checkload();
+    void saveprofile()const;
+
 
     void tempreadreach();
-
     void checkchangePalette();
-    void whilekeepupdatechange();
+    void whileKeepUpdateChange();
 
     void updateFR();
     // QGraphicsDropShadowEffect* buttonShadow;
-    void showError(const ErrorReporter::ErrorInfo& einf);
 
     void closeEvent(QCloseEvent* event) override
     {
-        setter.release();
+        emit MainWinClose();
     }
 };
 #endif // FPSDIALOG_H

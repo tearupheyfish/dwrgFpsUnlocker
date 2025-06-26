@@ -13,7 +13,8 @@ FpsSetter::FpsSetter(DWORD pid):
 //   ,dyrcx(NULL), funcaddr(NULL), preframerateaddr(NULL)
 {
     autoxprocesstimer = new autoxTimerProxy(*this);
-    openHandle();
+    if(!openHandle())
+        return;
 
 //    auto t = std::chrono::high_resolution_clock::now();
     getAddress();
@@ -21,13 +22,6 @@ FpsSetter::FpsSetter(DWORD pid):
 //    std::cout<<std::dec<<dulation<<" microseconds\n";
 
     continueautox();//默认自动close
-/*    //句柄实际上就是模块的装入地址
-    HMODULE moduleHandle = reinterpret_cast<HMODULE>(moduleBase);
-    FARPROC funcAddress = GetProcAddress(moduleHandle, "PyOS_ReadlineFunctionPointer");
-    if (funcAddress == NULL) {
-        std::cerr << "无法找到符号: " << func_name << std::endl;
-        ErrorReporter::instance()->receive(ErrorReporter::严重, "无法找到符号");
-    }*/
 
 /*    if (!*allocrice)
     {
@@ -44,6 +38,45 @@ FpsSetter::~FpsSetter()
     delete autoxprocesstimer;
 }
 
+FpsSetter::FpsSetter(FpsSetter &&right) noexcept :processHandle(right.processHandle)
+{
+    delete right.autoxprocesstimer;
+    right.autoxprocesstimer = nullptr;
+    autoxprocesstimer = new autoxTimerProxy(*this);
+
+    right.processHandle = nullptr;
+
+    std::tie(bad, fpsbad, processID, moduleBase, funcaddr, dyrcx)
+            = std::make_tuple(
+            std::move(right.bad), std::move(right.fpsbad),
+            std::move(right.processID), std::move(right.moduleBase),
+            std::move(right.funcaddr), std::move(dyrcx)
+    );
+}
+
+
+FpsSetter &FpsSetter::operator=(FpsSetter &&right) noexcept {
+    if(this != &right)
+    {
+        delete autoxprocesstimer;
+        delete right.autoxprocesstimer;
+        right.autoxprocesstimer = nullptr;
+        autoxprocesstimer = new autoxTimerProxy(*this);
+
+        closeHandle();
+        processHandle = right.processHandle;
+        right.processHandle = nullptr;
+
+        std::tie(bad, fpsbad, processID, moduleBase, funcaddr, dyrcx, preframerateaddr)
+                = std::make_tuple(
+                std::move(right.bad), std::move(right.fpsbad),
+                std::move(right.processID), std::move(right.moduleBase),
+                std::move(right.funcaddr), std::move(right.dyrcx), std::move(right.preframerateaddr)
+                /* 2025.6.26： dyrcx和pfraddr没有move右侧的(right.~)，因此额外花费2h，记一笔*/
+        );
+    }
+    return *this;
+}
 
 bool FpsSetter::setFps(int fps)
 {
@@ -82,7 +115,10 @@ float FpsSetter::getFps()
     float framerate;
     if (!ReadProcessMemory(processHandle, (LPVOID)(preframerateaddr+FR_OFFSET), &framerate, sizeof(framerate), nullptr))
     {
-        ErrorReporter::instance()->receive(ErrorReporter::严重,"无法读取帧率值");
+
+        ErrorReporter::instance()->receive(
+                ErrorReporter::严重,
+                "无法读取帧率值：");
         fpsbad = true;
         return 0;
     }
@@ -103,6 +139,14 @@ bool FpsSetter::openHandle()
     return true;
 }
 
+void FpsSetter::closeHandle() {
+    if(processHandle){
+        CloseHandle(processHandle);
+        processHandle = nullptr;
+    }
+}
+
+
 void FpsSetter::pauseautox()
 {
     autoxprocesstimer->timer.stop();
@@ -112,4 +156,6 @@ void FpsSetter::continueautox()
 {
     autoxprocesstimer->timer.start();
 }
+
+
 

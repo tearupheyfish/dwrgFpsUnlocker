@@ -1,96 +1,60 @@
+#include "applifemgr.h"
+#include "errreport.h"
 #include "fpsdialog.h"
-#include "ui_fpsdialog.h"
-#include "update_checker.h"
 #include "updateinformer.h"
 #include "env.h"
-#include "errreport.h"
 
 #include <QApplication>
 #include <QTranslator>
 #include <QFile>
+#include <memory>
 
-bool initial()
+FpsSetter initialSetter()
 {
     HWND targetWindow = FindWindowW(nullptr, L"第五人格");
     if (!targetWindow)
     {
-        ErrorReporter::instance()->receive({"只是一昧报错","未找到第五人格窗口"});
-        return false;
+        ErrorReporter::instance()->receive({"严重","未找到第五人格窗口"});
+        return {};
     }
 
     DWORD pid;
     GetWindowThreadProcessId(targetWindow, &pid);
     std::cout << "找到窗口，进程ID: " << pid << std::endl;
 
-    setter = std::make_unique<FpsSetter>(pid);
-    if (*setter)
-        return false;
-
-    return true;
-}
-
-bool checkload(Ui::dwrgFpsSetter* ui)
-{
-    if(hipp->exists())
-    {
-        if(hipp->open(QIODevice::ReadOnly))
-        {
-            QDataStream ds(hipp.get());
-
-            int fps;
-            ds>>fps;
-
-            bool uselast;
-            ds>>uselast;
-            if(uselast)
-            {
-                ui->fpscombox->setCurrentText(QString::number(fps));
-                ui->autoappradio->setChecked(true);
-                dl_r->dobuttonpress();
-            }
-        }
-        else
-        {
-            ErrorReporter::instance()->receive({"错误", "无法访问文件 ./hipp "});
-            return false;
-        }
-    }
-    return true;
+    return {pid};
 }
 
 int main(int argc, char *argv[])
 {
-
     QApplication a(argc, argv);
-
-    QTranslator translator;
 
     Dialog w;
     w.setWindowTitle("第五帧率解锁");
     w.setFixedSize(w.width(), w.height());
 
+    FpsSetter setter;
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
-    if (!initial())
+    w2:
+
+    UpdateInformer ifm;
+    UpdateChecker uc(ifm);
+    ifm.setRelativeData(uc);
+
+    AppLifeManager lifemgr(a, uc, w, ifm, setter);
+    /// lifemgr需要setter的实例，因此lifemgr必须在setter之后初始化
+    /// setter的初始化报错了无法给予lifemgr的槽函数，因此setter必须在lifemgr之后初始化
+
+    setter = initialSetter();
+    if((bool)setter)
     {
-        QApplication::exit(1);
-        exit(1);
+        w.setRelativedData(setter);
+        w.show();
     }
 
-    if (!checkload(dl_r->getui()))
-    {
-        QApplication::exit(2);
-        exit(2);
-    }
 
-    w.show();
-
-    UpdateInformer ifm(&w);
-    informer_r = &ifm;
-    ifm.setFixedSize(ifm.width(), ifm.height());
-
-    uc = std::make_unique<UpdateChecker>();
-    uc->checkUpdate();
+    uc.checkUpdate();
 
     return a.exec();
 }
