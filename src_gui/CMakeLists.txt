@@ -1,38 +1,35 @@
+#set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>DLL) # 这就是cmake默认参数
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") # 使用 /MT 或 /MTd
+# 转换COMMON_DIR为相对路径
+file(RELATIVE_PATH COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}" "${COMMON_DIR}")
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-if(CMAKE_BUILD_TYPE STREQUAL "DEBUG")
-    list(PREPEND CMAKE_PREFIX_PATH "R:/Tofu/Dependencies/Libs/Qt_6.8.3-shared-Debug_msvc2022_64_RP")
-else()
-    list(PREPEND CMAKE_PREFIX_PATH "R:/Tofu/Dependencies/Libs/Qt_6.8.3-shared-Release_msvc2022_64_RP")
-endif ()
+find_package(Qt6 REQUIRED COMPONENTS Widgets Core Network)
+find_package(Qt6Keychain CONFIG REQUIRED)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Core Network)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Core Network)
+include_directories("${COMMON_DIR}/inc" "./inc")
 
-file(GLOB SRC_GUI RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *)
-list(FILTER SRC_GUI EXCLUDE REGEX "^CMakeLists\\.txt$")
+aux_include_directory("./inc" HEADERS)
+aux_source_directory("./src" SOURCES)
+aux_source_directory("${COMMON_DIR}/src" COMSRC)
+# 在分离ui h的情况下并入ui文件
+list(APPEND CMAKE_AUTOUIC_SEARCH_PATHS "./ui")
 
-file(GLOB COMMON RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${COMMON_DIR}/*)
+qt_add_executable(dwrgFpsUnlocker
+        MANUAL_FINALIZATION
+        ${HEADERS} ${SOURCES}
+        ${COMSRC} #comdir/inc
+        ${RES_DIR}/.rc
+)
 
-include_directories(${COMMON_DIR} . )
-
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(dwrgFpsUnlocker
-            MANUAL_FINALIZATION
-            ${SRC_GUI}
-            ${COMMON}
-            ${RES_DIR}/.rc
-    )
+if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_link_options(/OPT:REF /OPT:ICF)
 endif()
-
-target_compile_definitions(dwrgFpsUnlocker PRIVATE QT_DYNAMIC)
-
-target_link_libraries(dwrgFpsUnlocker PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network)
+target_link_libraries(dwrgFpsUnlocker PRIVATE
+        Qt6::Widgets Qt6::Network Qt6Keychain::Qt6Keychain)
 
 set_target_properties(dwrgFpsUnlocker PROPERTIES
         ${BUNDLE_ID_OPTION}
@@ -40,41 +37,43 @@ set_target_properties(dwrgFpsUnlocker PROPERTIES
         LINK_FLAGS "/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" /SUBSYSTEM:WINDOWS"
 )
 
+
 ########################## DEPLOY via INSTALL ###########################
+if(${GUI_BUILD_SINGLE})
+    set(DEPLOY_DIR "${DEPLOY_DIR}/sgui")
+else()
+    set(DEPLOY_DIR "${DEPLOY_DIR}/gui")
+endif()
 
 
-set(DEPLOY_DIR ${DEPLOY_DIR}/gui) #子目录的变量修改不会传递给父cmake
-
-set(EXECUTABLE_PATH "$<TARGET_FILE:dwrgFpsUnlocker>")
-set(UPDATE_FILEPATH "$<TARGET_FILE:updater>")
-#set(TRYFIX_FILEPATH "$<TARGET_FILE:tryfix>")
-
-add_custom_command(TARGET dwrgFpsUnlocker POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E remove_directory ${DEPLOY_DIR}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${DEPLOY_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy ${EXECUTABLE_PATH} ${DEPLOY_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy ${UPDATE_FILEPATH} ${DEPLOY_DIR}
-#        COMMAND ${CMAKE_COMMAND} -E copy ${TRYFIX_FILEPATH} ${DEPLOY_DIR}
-        COMMENT "Ensuring directory and copying executable to deploy directory"
-)
-
-set(DEPLOY_COMMAND "windeployqt \
---release --no-compiler-runtime --no-system-d3d-compiler --no-system-dxc-compiler \
---no-translations --add-plugin-types  platforms \
---dir ${DEPLOY_DIR} ${EXECUTABLE_PATH}")
-
+installmsg("### Preparing deployment directory...")
 install(CODE "
-    message(\"Running windeployqt6 for deployment...\")
-    execute_process(
-        COMMAND ${DEPLOY_COMMAND}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        RESULT_VARIABLE deploy_result
-        ERROR_VARIABLE deploy_error
-    )
-    if(NOT deploy_result EQUAL 0)
-        message(FATAL_ERROR \"windeployqt6 command failed: \${deploy_error}\")
-    endif()
+        file(REMOVE_RECURSE \"${DEPLOY_DIR}\")
+        file(MAKE_DIRECTORY \"${DEPLOY_DIR}\")
 ")
+
+installmsg("### Installing executable...")
+install(TARGETS dwrgFpsUnlocker updater DESTINATION "${DEPLOY_DIR}")
+
+if(NOT GUI_BUILD_SINGLE)
+    set(DEPLOY_COMMAND "windeployqt \
+    --release --no-compiler-runtime --no-system-d3d-compiler --no-system-dxc-compiler \
+    --no-translations --add-plugin-types  platforms \
+    --dir ${DEPLOY_DIR} ${EXECUTABLE_PATH}")
+
+    installmsg("Running windeployqt6 for deployment...")
+    install(CODE "
+        execute_process(
+            COMMAND ${DEPLOY_COMMAND}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE deploy_result
+            ERROR_VARIABLE deploy_error
+        )
+        if(NOT deploy_result EQUAL 0)
+            message(FATAL_ERROR \"windeployqt6 command failed: \${deploy_error}\")
+        endif()
+    ")
+endif ()
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(dwrgFpsUnlocker)

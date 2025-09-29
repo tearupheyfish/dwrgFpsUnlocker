@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>dwrgFpsSetter</class>
+ <widget class="QDialog" name="dwrgFpsSetter">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>211</width>
+    <height>50</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Microsoft YaHei UI</family>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>dwrgFpsUnlocker</string>
+  </property>
+  <widget class="QComboBox" name="fpscombox">
+   <property name="geometry">
+    <rect>
+     <x>11</x>
+     <y>11</y>
+     <width>56</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>60</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>75</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>120</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>144</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>165</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>240</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QRadioButton" name="autoappradio">
+   <property name="geometry">
+    <rect>
+     <x>121</x>
+     <y>16</y>
+     <width>18</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;下次启动时自动应用&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="applybutton">
+   <property name="geometry">
+    <rect>
+     <x>143</x>
+     <y>11</y>
+     <width>56</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">
+     QPushButton {
+    border: 1px solid;
+	background-color:#ffffff
+}
+
+QPushButton:hover {
+
+	background-color:#cccccc
+}
+
+QPushButton::pressed
+{
+	border: none;
+	background-color: #999999;
+}
+</string>
+   </property>
+   <property name="text">
+    <string>应用</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="curframerate">
+   <property name="geometry">
+    <rect>
+     <x>77</x>
+     <y>11</y>
+     <width>34</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;实时帧率&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">.QPushButton{border: none; background: transparent;}</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QLabel" name="version">
+   <property name="geometry">
+    <rect>
+     <x>164</x>
+     <y>38</y>
+     <width>32</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Microsoft YaHei</family>
+     <pointsize>7</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color:grey</string>
+   </property>
+   <property name="text">
+    <string>v2.0</string>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

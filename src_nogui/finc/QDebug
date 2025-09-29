@@ -1,0 +1,20 @@
+//
+// Created by Tofu on 2025/6/27.
+//
+
+#ifndef DWRGFPSUNLOCKER_QDEBUG_H
+#define DWRGFPSUNLOCKER_QDEBUG_H
+
+#include <ios>
+
+namespace Qt{
+    static auto hex = std::hex;
+}
+
+#define qInfo() std::cout
+#define qWarning() std::cout
+#define qDebug() std::cout
+#define qFatal() std::cerr
+#define qCritical() std::cerr
+
+#endif //DWRGFPSUNLOCKER_QDEBUG_H
