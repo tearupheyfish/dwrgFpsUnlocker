@@ -87,7 +87,7 @@ void UpdateChecker::checkUpdate() {
                     for (const QJsonValue &assetVal : assets) {
                         QJsonObject asset = assetVal.toObject();
                         if (asset["name"].toString() ==
-                    #ifdef BUILD_SINGLE
+                    #ifdef GUI_BUILD_SINGLE
                                         "dwrgFpsUnlocker.exe"
                     #else
                                         "dwrgFpsUnlocker.zip"

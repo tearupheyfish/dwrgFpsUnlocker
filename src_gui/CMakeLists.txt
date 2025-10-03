@@ -8,7 +8,12 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Network)
-find_package(Qt6Keychain CONFIG REQUIRED)
+add_compile_definitions(NOMINMAX)#windows.h的minmax宏和ylt打架
+find_package(yalantinglibs CONFIG REQUIRED)
+if(GUI_BUILD_SINGLE)
+    find_package(Qt6Keychain CONFIG REQUIRED)
+    add_compile_definitions(GUI_BUILD_SINGLE)#为了不影响nogui的storage编译
+endif ()
 
 include_directories("${COMMON_DIR}/inc" "./inc")
 
@@ -29,7 +34,9 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_link_options(/OPT:REF /OPT:ICF)
 endif()
 target_link_libraries(dwrgFpsUnlocker PRIVATE
-        Qt6::Widgets Qt6::Network Qt6Keychain::Qt6Keychain)
+        Qt6::Widgets Qt6::Network
+        $<$<BOOL:${GUI_BUILD_SINGLE}>:Qt6Keychain::Qt6Keychain>
+        yalantinglibs::yalantinglibs)
 
 set_target_properties(dwrgFpsUnlocker PROPERTIES
         ${BUNDLE_ID_OPTION}

@@ -58,6 +58,11 @@
      <string>240</string>
     </property>
    </item>
+   <item>
+    <property name="text">
+     <string></string>
+    </property>
+   </item>
   </widget>
   <widget class="QRadioButton" name="autoappradio">
    <property name="geometry">

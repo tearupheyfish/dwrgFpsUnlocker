@@ -31,6 +31,7 @@ class FpsDialog : public QDialog
 public:
     FpsDialog(QWidget *parent = nullptr);
     ~FpsDialog();
+
     void setRelativedData(FpsSetter& setter)
     {
         this->setter = &setter;
@@ -56,7 +57,6 @@ private slots:
 private:
     bool checkload();
     void saveprofile()const;
-
 
     void tempreadreach();
     void checkchangePalette();

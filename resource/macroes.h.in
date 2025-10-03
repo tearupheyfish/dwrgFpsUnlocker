@@ -6,6 +6,5 @@
 #define DWRGFPSUNLOCKER_MACROES_H
 
 #define VERSION_STRING "@APP_VERSION@"
-#cmakedefine BUILD_SINGLE //for gui
 
 #endif //DWRGFPSUNLOCKER_MACROES_H

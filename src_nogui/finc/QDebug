@@ -10,11 +10,18 @@
 namespace Qt{
     static auto hex = std::hex;
 }
-
+#ifdef _DEBUG
 #define qInfo() std::cout
 #define qWarning() std::cout
 #define qDebug() std::cout
 #define qFatal() std::cerr
 #define qCritical() std::cerr
+#else
+#define qInfo() if(false) std::cout
+#define qWarning() if(false) std::cout
+#define qDebug() if(false) std::cout
+#define qFatal() std::cerr
+#define qCritical() std::cerr
+#endif
 
 #endif //DWRGFPSUNLOCKER_QDEBUG_H

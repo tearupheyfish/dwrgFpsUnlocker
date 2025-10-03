@@ -1,12 +1,12 @@
 #ifndef FPS_SETTER_H
 #define FPS_SETTER_H
 
-#include <windows.h>
-#include <TlHelp32.h>
+#include <QDebug>
 
-#include <iostream>
-#include <memory>
+#include <windows.h>
+
 #include <functional>
+#include <iostream>
 
 /** 地址布局（截至2025.7.2）（'[]'表解引用）
  *              ↓ funcaddr
@@ -45,7 +45,7 @@ protected:
     uintptr_t   moduleBase;
     uintptr_t   funcaddr;
     uintptr_t   dyrcx;
-#define DYRCX_P_OFFSET  (funcaddr + 0xA75)
+#define DYRCX_P_OFFSET  (funcaddr + 0xA758)
 #define DYRCX_O_OFFSET   0x10
 
     uintptr_t   preframerateaddr;

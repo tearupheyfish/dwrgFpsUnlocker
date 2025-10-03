@@ -98,12 +98,12 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
-    FpsDialog w;
-    w.setWindowTitle("第五帧率解锁");
-    w.setFixedSize(w.width(), w.height());
-
     FpsSetter setter;
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+
+    FpsDialog w; //需要再fpssetter后创建，才不会让timer访问已经销毁的setter
+    w.setWindowTitle("第五帧率解锁");
+    w.setFixedSize(w.width(), w.height());
 
 
     UpdateDialog ifm;

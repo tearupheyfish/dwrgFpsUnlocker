@@ -9,6 +9,4 @@
 #include <memory>
 #include <fstream>
 
-inline std::unique_ptr<std::fstream> hipp;
-
 #endif // ENV_H

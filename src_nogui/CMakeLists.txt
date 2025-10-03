@@ -1,7 +1,6 @@
-file(RELATIVE_PATH COMMON_DIR
-        "${CMAKE_CURRENT_SOURCE_DIR}"  # Reference directory
-        "${COMMON_DIR}"                # Original directory to make relative
-)
+file(RELATIVE_PATH COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}" "${COMMON_DIR}")
+
+find_package(yalantinglibs CONFIG REQUIRED)
 
 include_directories("./finc" "${COMMON_DIR}/inc" "./inc" )
 
@@ -15,6 +14,7 @@ add_executable(dwrgFpsUnlocker_nogui
 target_compile_options(dwrgFpsUnlocker_nogui PRIVATE /utf-8)
 target_compile_definitions(dwrgFpsUnlocker_nogui PRIVATE UNICODE _UNICODE)
 
+target_link_libraries(dwrgFpsUnlocker_nogui PRIVATE yalantinglibs::yalantinglibs)
 set_target_properties(
         dwrgFpsUnlocker_nogui PROPERTIES
         LINK_FLAGS "/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" /SUBSYSTEM:CONSOLE"

@@ -2,6 +2,8 @@
 // Created by Tofu on 2025/5/15.
 //
 
+#include "storage.h"
+
 #include "fpssetter.h"
 #include "console_color_mgr.h"
 
@@ -30,7 +32,7 @@ int main()
     FpsSetter setter(pid);
     ConsoleStyleManager csm;
 
-    auto cycle_print_fps = [&]()
+    auto repeat_fps = [&]()
     {
         int time(5);
 
@@ -46,24 +48,41 @@ int main()
 
     int fps = 60;
 
-    if (std::filesystem::exists(std::filesystem::path("./hipp")))
+    Storage<hipp> hipp;
+    if (hipp.exist())
     {
-        std::fstream file("./hipp", std::ios::in | std::ios::binary);
-        if (!file)
+        if (!hipp)
         {
             std::cerr << "打不开文件 hipp..\n";
             Sleep(1500);
             exit(-5);
         }
-        file.read((char*)&fps, sizeof(fps));
+        fps = hipp.load<&hipp::fps>();
         setter.setFps(fps);
         std::cout<<"自动设置上次的帧率值: ";
         csm.setStyle(FOREGROUND_GREEN);;
         std::cout<<std::dec<<fps<<'\n';
         csm.resetStyle();
-        cycle_print_fps();
-        file.close();
+        repeat_fps();
     }
+    // if (std::filesystem::exists(std::filesystem::path("./hipp")))
+    // {
+    //     std::fstream file("./hipp", std::ios::in | std::ios::binary);
+    //     if (!file)
+    //     {
+    //         std::cerr << "打不开文件 hipp..\n";
+    //         Sleep(1500);
+    //         exit(-5);
+    //     }
+    //     file.read((char*)&fps, sizeof(fps));
+    //     setter.setFps(fps);
+    //     std::cout<<"自动设置上次的帧率值: ";
+    //     csm.setStyle(FOREGROUND_GREEN);;
+    //     std::cout<<std::dec<<fps<<'\n';
+    //     csm.resetStyle();
+    //     cycle_print_fps();
+    //     file.close();
+    // }
 
     std::atomic_bool receive_input(false), bad_input(false);
 //    std::cout<<"输入期望帧率的正整数值并回车：";
@@ -99,12 +118,17 @@ int main()
     }
 
     setter.setFps(fps);
-    cycle_print_fps();
+    repeat_fps();
 
-    std::ofstream file("./hipp", std::ios::out | std::ios::binary);
-    file.write((char*)&fps, sizeof(fps));
-    bool b = true;
-    file.write((char*)&b, sizeof(b));
+    if (hipp)
+    {
+        hipp.save<&hipp::fps>(fps);
+        hipp.save<&hipp::checked>(true);
+    }
+    // std::ofstream file("./hipp", std::ios::out | std::ios::binary);
+    // file.write((char*)&fps, sizeof(fps));
+    // bool b = true;
+    // file.write((char*)&b, sizeof(b));
 
     std::cout<<'\n';
     Sleep(2000);

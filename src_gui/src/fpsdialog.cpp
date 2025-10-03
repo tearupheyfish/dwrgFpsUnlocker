@@ -1,12 +1,13 @@
 #include "ui_fpsdialog.h"
 #include "fpsdialog.h"
-#include "env.h"
+#include "../../common/inc/storage.h"
 #include "fpssetter.h"
 #include "version.h"
 
 #include <QMessageBox>
 #include <QTime>
 #include <QRandomGenerator>
+
 
 FpsDialog::FpsDialog(QWidget *parent)
     : QDialog(parent), ui(new Ui::dwrgFpsSetter)
@@ -20,7 +21,7 @@ FpsDialog::FpsDialog(QWidget *parent)
     frupdatereminder->setInterval(1500);
     connect(frupdatereminder, &QTimer::timeout, this, &FpsDialog::updateFR);
 
-    tmpreadtimer = new QTimer(ui->curframerate);
+    tmpreadtimer = new QTimer(ui->curframerate);//可能在setter销毁之后触发
     tmpreadtimer->setSingleShot(true);
     tmpreadtimer->setInterval(6500);
     connect(tmpreadtimer, &QTimer::timeout, this, &FpsDialog::tempreadreach);
@@ -38,14 +39,22 @@ FpsDialog::FpsDialog(QWidget *parent)
 
 FpsDialog::~FpsDialog()
 {
-    if(ui->autoappradio->isChecked() || std::filesystem::exists("./hipp"))
-        saveprofile();
+    saveprofile();
     delete ui;
 }
 
 void FpsDialog::on_applybutton_pressed()
 {
-    setter->setFps(ui->fpscombox->currentText().toInt());
+    const static QRegularExpression intfpschecker("^[0-9]+$");
+    auto fpsstr = ui->fpscombox->currentText();
+    if (fpsstr.isEmpty())
+        fpsstr = "60";
+    else if (!intfpschecker.match(fpsstr).hasMatch())
+    {
+        ErrorReporter::instance()->receive(ErrorReporter::ErrorInfo{"错误", "输入的帧数需要是正整数"});
+        return;
+    }
+    setter->setFps(fpsstr.toInt()/*不合法的数值将会返回0*/);
     set2tempread();
     Sleep(QRandomGenerator::global()->bounded(200, 700));
 }
@@ -123,30 +132,33 @@ void FpsDialog::tempreadreach()
     whileKeepUpdateChange();
 }
 
+/** 有记忆 -> 读取fps和check
+ *    ◇ ->
+ */
+
 void FpsDialog::saveprofile()const
 {
-    hipp = std::make_unique<std::fstream>("./hipp", std::ios::out | std::ios::binary);
-    {
-        if(hipp->is_open())
-        {
-                goto rewrite;
-        }
-        goto close;
-    }
-rewrite:
-    hipp->seekp(0);
+    if(! ui->autoappradio->isChecked())return ;
 
+    Storage<hipp> hipp;
+    auto fpsstr = ui->fpscombox->currentText();
+    if (fpsstr.isEmpty())
     {
-        int fps = ui->fpscombox->currentText().toInt();
-        hipp->write((char *) &fps, sizeof(fps));
-        bool checked = ui->autoappradio->isChecked();
-        hipp->write((char *) &checked, sizeof(checked));
+        hipp.clear();
+        return ;
     }
-close:
-    hipp->close();
+    if(hipp)
+    {
+        int fps = fpsstr.toInt();
+        bool ret = hipp.save<&hipp::fps>(fps);
+        assert(ret);
+        bool checked = ui->autoappradio->isChecked();
+        ret = hipp.save<&hipp::checked>(checked);
+        assert(ret);
+    }
 }
 
-// 字节序翻转工具函数
+// 翻转字节序
 template <typename T>
 T swapEndian(T value) {
     T swapped = 0;
@@ -157,35 +169,37 @@ T swapEndian(T value) {
 }
 
 bool FpsDialog::checkload() {
-    if(std::filesystem::exists(std::filesystem::path("./hipp")))
+    //如果存在hipp文件 (有过记录)
+    Storage<hipp> hipp;
+    if(hipp.exist())
     {
-        hipp = std::make_unique<std::fstream>("./hipp", std::ios::in | std::ios::binary);
-        if(hipp->is_open())
+        //如果文件可访问
+        if(hipp)
         {
-            int fps;
-            hipp->read((char*)&fps, sizeof(fps));
-
-            bool uselast;
-            hipp->read((char*)&uselast, sizeof(uselast));
+            //读取fps和uselast
+            int fps = hipp.load<&hipp::fps>();
+            bool uselast = hipp.load<&hipp::checked>();
 
             //处理QFile的端序残留问题
-            if(fps > 0x0000FFFF || fps < 0)
+            //               0x0000FFFF while int32
+            if(fps > (0b1<<(sizeof(int)*8/2))-1 || fps < 0)
             {
                 fps = swapEndian(fps);
                 uselast = swapEndian(uselast);
             }
+            //如果uselast
+            ui->fpscombox->setCurrentText(QString::number(fps));
             if(uselast)
             {
-                ui->fpscombox->setCurrentText(QString::number(fps));
+                //todo: uselast 紧接 autoapply 还是分开？
                 ui->autoappradio->setChecked(uselast);
             }
         }
         else
         {
-            ErrorReporter::instance()->receive({"错误", "无法访问文件 ./hipp "});
+            ErrorReporter::instance()->receive({"出错", "无法读写存储"});
             return false;
         }
-        hipp->close();
     }
     return true;
 }
