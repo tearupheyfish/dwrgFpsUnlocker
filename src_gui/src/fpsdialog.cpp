@@ -30,7 +30,7 @@ FpsDialog::FpsDialog(QWidget *parent)
 
     checkchangePalette();
 
-    ui->version->setText(Version(QString(VERSION_STRING)).toSimple());
+    ui->version->setText(Version(QApplication::applicationVersion()).toQString(2));
 
     checkload();
 

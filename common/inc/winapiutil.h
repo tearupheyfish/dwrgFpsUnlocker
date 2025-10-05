@@ -53,10 +53,7 @@ inline uintptr_t GetModuleBaseAddress(DWORD processId, const char* moduleName) {
     return moduleBaseAddress;
 }
 
-uintptr_t getProcAddressEx(HANDLE hProcess, uintptr_t moduleBase, const char* symbolName);
 uintptr_t getProcAddressExBuffered(HANDLE hProcess, uintptr_t moduleBase, const char* symbolName);
-
-bool ModifyMappedData(const std::string& filePath, uintptr_t targetAddress, uintptr_t newValue);
 
 std::wstring PrintProcessGroups();
 

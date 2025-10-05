@@ -47,7 +47,7 @@ int main()
     };
 
     int fps = 60;
-
+    bool havensettle = false;
     Storage<hipp> hipp;
     if (hipp.exist())
     {
@@ -59,6 +59,7 @@ int main()
         }
         fps = hipp.load<&hipp::fps>();
         setter.setFps(fps);
+        havensettle = true;
         std::cout<<"自动设置上次的帧率值: ";
         csm.setStyle(FOREGROUND_GREEN);;
         std::cout<<std::dec<<fps<<'\n';
@@ -87,13 +88,18 @@ int main()
     std::atomic_bool receive_input(false), bad_input(false);
 //    std::cout<<"输入期望帧率的正整数值并回车：";
     std::thread inputThread([&]() {
+        if (havensettle)
+            csm.setStyle(FOREGROUND_INTENSITY);
         std::cout << "输入期望帧率的正整数值并回车：";
-        if (!(std::cin>>fps))
+        bad_input = bool(std::cin>>fps);
+        csm.resetStyle();
+        if (bad_input)
         {
             std::cout<<"没看懂..请检查输入？";
             bad_input = true;
             return;
         }
+        std::cout<<'\r'<<"输入期望帧率的正整数值并回车："<<fps<<'\n';
         receive_input = true;
     });
 
@@ -114,7 +120,7 @@ int main()
         Sleep(1500);
         std::cout<<"，退堂！"<<std::flush;
         Sleep(500);
-        return 0;               // 超时退出
+        return 0;
     }
 
     setter.setFps(fps);

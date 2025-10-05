@@ -6,6 +6,7 @@
 #define DWRGFPSUNLOCKER_VERSION_H
 
 #include <QRegularExpression>
+#include <QString>
 
 //todo:支持不定长版本号比较
 struct Version {
@@ -15,15 +16,15 @@ struct Version {
     // 构造函数，解析传入的版本号字符串
 explicit
     Version(const QString& vstr) {
-        QString numStr = vstr.mid(1); // 去除首字符 'v'
-        // 使用正则表达式分割字符串，匹配 '.' 和 '-'
-        QStringList parts = numStr.split(QRegularExpression("[.-]"));
-        for (const QString& part : parts) {
-            bool ok;
-            int num = part.toInt(&ok); // 转换为整数
-            if (ok) {
-                verchain.push_back(static_cast<uint8_t>(num));
-            }
+        //左侧是 [开头(^)|.|v] 且右侧是 [结尾($)|.|-] 的 整数(\d)+
+        QRegularExpression re(R"((?:^|\.|v)(\d+)(?=\.|-|$))");
+        auto it = re.globalMatch(vstr);
+
+        while (it.hasNext())
+        {
+            QRegularExpressionMatch m = it.next();
+            auto part = m.captured(1); //每次匹配的第一个捕获组就是(\d+)
+            verchain.push_back(static_cast<uint8_t>(part.toUShort()));//可惜没有toUChar
         }
     }
 
@@ -40,7 +41,7 @@ explicit
     }
 
     // 版本号转换为字符串格式
-    operator QString() {
+    operator const QString&() {
         if(!verstring.has_value()) {
             QStringList parts;
             for (uint8_t num: verchain) {
@@ -52,12 +53,10 @@ explicit
     }
 
 [[nodiscard]]
-    QString toSimple() const
+    QString toQString(int lenth = 2)
     {
-        return "v" + QString::number(verchain[0]) +'.'+ QString::number(verchain[1]);
+        return operator const QString&().sliced(0, 1+2*(lenth-1)+1);
     }
 };
-
-inline Version curver(VERSION_STRING);
 
 #endif //DWRGFPSUNLOCKER_VERSION_H

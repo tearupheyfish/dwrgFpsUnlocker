@@ -1,3 +1,5 @@
+#include "macroes.h"
+
 #include "applifemgr.h"
 #include "errreport.h"
 #include "fpsdialog.h"
@@ -16,28 +18,40 @@ void prtEnvInfo()
 {
     qInfo()<<"====环境信息========================";
     qInfo()<< PrintProcessGroups();
+    qInfo()<< "版本: "<<VERSION_STRING<<'\n';
 }
 
-//todo: 区分必要的弹窗和仅记录的日志
+//@ref DevDoc/logging.cov.md
 void customLogHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg) {
-#ifndef USELOG
+#ifndef USE_LOG
     Q_UNUSED(type)
     Q_UNUSED(context)
     Q_UNUSED(msg)
     return;
 #endif
-    QDir logsDir("logs");
-    if (!logsDir.exists()) {
-        logsDir.mkpath(".");
+    static QMutex mutex;
+    QMutexLocker lock(&mutex);//自动阻塞-加锁-释放类
+
+    static QFile logFile;
+    static bool inited = false;
+
+    if (!inited) {
+        QString logDir = "logs";
+        QDir().mkpath(logDir);
+
+        QString logName = QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss.log");
+        logFile.setFileName(QString("%1/%2").arg(logDir, logName));
+
+        logFile.open(QIODevice::Append | QIODevice::Text);
+        inited = true;
     }
 
-    QString logFileName = QString("logs/%1.log").arg(
-            QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss"));
-
-    static QFile logFile(logFileName);
-    if (!logFile.isOpen()) { 
-        logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+#ifndef _DEBUG
+    if (type == QtDebugMsg)
+    {
+        return;
     }
+#endif
 
     // 格式化日志信息
     QString logType;
@@ -61,17 +75,11 @@ void customLogHandler(QtMsgType type, const QMessageLogContext &context, const Q
     }
 
     out << logType << ": "
-//        << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") << " "
         << msg
-//        << " (File:" << context.file
-//        << ", Line:" << context.line
+#ifdef _DEBUG
         << ", Function:" << context.function << ")"
+#endif
         << '\n';
-
-    // Fatal 状态下退出程序
-    if (type == QtFatalMsg) {
-
-    }
 }
 
 
@@ -80,7 +88,7 @@ FpsSetter initialSetter()
     HWND targetWindow = FindWindowW(nullptr, L"第五人格");
     if (!targetWindow)
     {
-        qWarning()<<"未找到游戏窗口";
+        qCritical()<<"未找到游戏窗口";
         ErrorReporter::instance()->receive({ErrorReporter::严重,"未找到第五人格窗口"});
         return {};
     }
@@ -93,10 +101,42 @@ FpsSetter initialSetter()
 
 int main(int argc, char *argv[])
 {
+#ifdef GUI_BUILD_SINGLE
+    if (argc > 1)
+    {
+        std::filesystem::path newExePath = argv[1];
+        std::filesystem::path curDir = argv[2];
+        if (argc > 3)
+        {
+            int64_t waitpid = std::stoull(argv[3]);
+            HANDLE hProcess = OpenProcess(SYNCHRONIZE, FALSE, waitpid);
+            if (!hProcess)
+            {
+                std::cerr<<"出错：未能访问指定进程";
+                return 1;
+            }
+            //Windows中对象本身就是可等待的
+            WaitForSingleObject(hProcess, INFINITE);
+
+            CloseHandle(hProcess);
+        }
+        auto to = curDir/newExePath.filename();
+        try
+        {
+            std::filesystem::copy(newExePath, to, std::filesystem::copy_options::overwrite_existing);
+        }catch (std::exception&e)
+        {
+            qCritical()<<e.what();
+            return -1;
+        }
+        return 0;
+    }
+#endif
     qInstallMessageHandler(customLogHandler);
     prtEnvInfo();
 
     QApplication a(argc, argv);
+    a.setApplicationVersion(VERSION_STRING);
 
     FpsSetter setter;
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);

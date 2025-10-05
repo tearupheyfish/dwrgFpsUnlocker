@@ -27,9 +27,7 @@ public:
     bool save(const T& value);
     //取
     template<auto Member>
-    // ylt::reflection::internal::member_tratis<decltype(Member)>::value_type
-    auto
-        load() const;
+    auto load() const;
     //清空记录
     void clear();
 
@@ -49,8 +47,7 @@ private:
     inline static const auto keys = ylt::reflection::get_member_names<Layout>();
     const std::string storage_name;
 
-#ifdef GUI_BUILD_SINGLE
-#else
+#ifndef GUI_BUILD_SINGLE
 mutable
     std::fstream _file;
 #endif
@@ -116,7 +113,7 @@ template<class Layout>
         {
             auto eraseJobSync = new SyncJob<QKeychain::DeletePasswordJob>(QString::fromUtf8(storage_name));
             eraseJobSync->setKey(QString::fromUtf8(key));
-            eraseJobSync->start([](QKeychain::Job* job){});
+            eraseJobSync->start({});
         }
     }
 

@@ -27,9 +27,7 @@ bool FpsSetter::getAddress() {
         bad = true;
         return false;
     }
-#ifdef _DEBUG
-    qInfo() << "dll基址: " << Qt::hex << moduleBase;
-#endif
+    qDebug() << "dll基址: " << Qt::hex << moduleBase;
     //查询函数符号地址
     funcaddr = getProcAddressExBuffered(processHandle, moduleBase, funcname);
     if (!funcaddr) {
@@ -56,9 +54,7 @@ bool FpsSetter::getAddress() {
         return false;
     }
 
-#ifdef _DEBUG
     qDebug() << "动态内存地址: " << Qt::hex << dyrcx;
-#endif
 
     //读取pfraddr
     if (!ReadProcessMemory(processHandle, (LPCVOID) (dyrcx + PFR_OFFSET), &preframerateaddr, sizeof(preframerateaddr),

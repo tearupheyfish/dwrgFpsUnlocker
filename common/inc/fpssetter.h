@@ -14,6 +14,7 @@
  *            +0x10] ← dyrcx (一段动态内存地址；这样命名只是因为跟踪时用的寄存器几乎都是rcx)
  * [dyrcx+08] + 0x23C  ← 游戏自带检测的帧率地址
  *      ⤒ preframeaddr
+ * @ref DevDoc/pointerlink.md
  */
 class FpsSetter
 {

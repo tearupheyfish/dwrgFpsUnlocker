@@ -14,6 +14,7 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QApplication>
+#include <QDebug>
 
 
 UpdateChecker::UpdateChecker(UpdateDialog &ifm, QObject *parent)
@@ -34,7 +35,7 @@ UpdateChecker::UpdateChecker(UpdateDialog &ifm, QObject *parent)
 
 void UpdateChecker::checkUpdate() {
     QUrl url(
-#ifdef PRERELEASE
+#ifdef PRE_RELEASE
     "https://api.github.com/repos/tearupheyfish/dwrgFpsUnlocker/releases"
 #else
 "https://api.github.com/repos/tearupheyfish/dwrgFpsUnlocker/releases/latest"
@@ -65,34 +66,29 @@ void UpdateChecker::checkUpdate() {
 //        QJsonObject obj = doc.object();
 
         //question: 为何需要显式转换？
-        Version currentVersion(VERSION_STRING);
+        Version currentVersion(QApplication::applicationVersion());
         Version latestVersion = currentVersion;
         QJsonArray releases
-#ifdef PRERELEASE
+#ifdef PRE_RELEASE
          = doc.array();
 #else
         = {doc.object()};
 #endif
         for(const QJsonValue &releaseVal: releases) {
             QJsonObject releaseObj = releaseVal.toObject();
-#ifdef PRERELEASE
+#ifdef PRE_RELEASE
             if(releaseObj["prerelease"].toBool())
 #endif
             {
-                Version version(releaseObj["tag_name"].toString());
+                auto tag_name = releaseObj["tag_name"].toString();
+                Version version(tag_name);
                 if(version > latestVersion) {
                     latestVersion = version;
 
                     QJsonArray assets = releaseObj["assets"].toArray();
                     for (const QJsonValue &assetVal : assets) {
                         QJsonObject asset = assetVal.toObject();
-                        if (asset["name"].toString() ==
-                    #ifdef GUI_BUILD_SINGLE
-                                        "dwrgFpsUnlocker.exe"
-                    #else
-                                        "dwrgFpsUnlocker.zip"
-                    #endif
-                            ) {
+                        if (asset["name"].toString() == filename) {
                             downloadurl = asset["browser_download_url"].toString();
                             break;
                         }
@@ -132,7 +128,7 @@ void UpdateChecker::downloadPacakge(const QString &url, const QString &filename)
 
     QFile* file = new QFile(savePath);
     if (!file->open(QIODevice::WriteOnly)) {
-        qWarning() << "Failed to save pkg.";
+        qWarning() << "分配下载文件失败，路径:"<<savePath;
         return;
     }
 
@@ -154,8 +150,8 @@ void UpdateChecker::downloadPacakge(const QString &url, const QString &filename)
 
         if(reply->error() != QNetworkReply::NoError)
             return;
-
-        if (!QFile::exists(QDir::currentPath() + "/updater.exe"))
+#ifndef GUI_BUILD_SINGLE
+        if (!QFile::exists(QDir::currentPath()+"./updater.exe"))
         {
             QMessageBox::information(nullptr, "出问题", "找不到updater.exe；尝试手动更新？");
             goto manually;
@@ -173,9 +169,12 @@ void UpdateChecker::downloadPacakge(const QString &url, const QString &filename)
             QMessageBox::information(nullptr, "出问题", "移动updater.exe失败；尝试手动更新？");
             goto manually;
         }
-
         if(QProcess::startDetached(
                 saveDir.filePath("updater.exe"),
+#else
+        if(QProcess::startDetached(
+                saveDir.filePath(filename),
+#endif
                 {savePath, QDir::currentPath(), QString::number(QCoreApplication::applicationPid())},
                 nullptr
                 ))

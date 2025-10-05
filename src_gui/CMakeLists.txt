@@ -7,13 +7,15 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Core Network)
-add_compile_definitions(NOMINMAX)#windows.h的minmax宏和ylt打架
-find_package(yalantinglibs CONFIG REQUIRED)
 if(GUI_BUILD_SINGLE)
     find_package(Qt6Keychain CONFIG REQUIRED)
     add_compile_definitions(GUI_BUILD_SINGLE)#为了不影响nogui的storage编译
 endif ()
+
+find_package(Qt6 REQUIRED COMPONENTS Widgets Core Network)
+add_compile_definitions(NOMINMAX)#windows.h的minmax宏和ylt打架
+find_package(yalantinglibs CONFIG REQUIRED)
+
 
 include_directories("${COMMON_DIR}/inc" "./inc")
 
@@ -41,6 +43,7 @@ target_link_libraries(dwrgFpsUnlocker PRIVATE
 set_target_properties(dwrgFpsUnlocker PROPERTIES
         ${BUNDLE_ID_OPTION}
         WIN32_EXECUTABLE TRUE
+        VERSION ${PROJECT_VERSION}
         LINK_FLAGS "/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" /SUBSYSTEM:WINDOWS"
 )
 
@@ -60,8 +63,7 @@ install(CODE "
 ")
 
 installmsg("### Installing executable...")
-install(TARGETS dwrgFpsUnlocker updater DESTINATION "${DEPLOY_DIR}")
-
+install(TARGETS dwrgFpsUnlocker DESTINATION "${DEPLOY_DIR}")
 if(NOT GUI_BUILD_SINGLE)
     set(DEPLOY_COMMAND "windeployqt \
     --release --no-compiler-runtime --no-system-d3d-compiler --no-system-dxc-compiler \
@@ -80,6 +82,8 @@ if(NOT GUI_BUILD_SINGLE)
             message(FATAL_ERROR \"windeployqt6 command failed: \${deploy_error}\")
         endif()
     ")
+
+    install(TARGETS updater DESTINATION "${DEPLOY_DIR}")
 endif ()
 
 if(QT_VERSION_MAJOR EQUAL 6)

@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.19)
 
-set(APP_VERSION "v2.4")  #版本号
+set(APP_VERSION "2.4.1")  #版本号
 option(GUI_BUILD_SINGLE "编译单个可执行文件（静态链接）" OFF)
+option(USE_LOG "打印日志" OFF)
+option(PRE_RELEASE "预发布版本" OFF)
 set(DEPLOY_DIR "${CMAKE_SOURCE_DIR}/deploy")  #部署目录 可以用-DDEPLOY_DIR覆盖
 
     configure_file(
@@ -11,7 +13,7 @@ set(DEPLOY_DIR "${CMAKE_SOURCE_DIR}/deploy")  #部署目录 可以用-DDEPLOY_DI
     set(CMAKE_INSTALL_PREFIX ${DEPLOY_DIR})         #只是为了防止一个管理员权限装到PROGRA~
 
 
-project(dwrgFpsUnlocker LANGUAGES CXX)
+project(dwrgFpsUnlocker VERSION ${APP_VERSION} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

@@ -1,0 +1,39 @@
+graph TD
+    funcname["funcname:char[]"] -.->|"getExprotAddr(funcname)"| funcaddr
+    
+    subgraph BLOCKFUNCADDR [" "]
+    funcaddr
+    +0xA758
+    end
+    +0xA758 --> dyrcx1
+    
+    subgraph BLOCKDYRCX1 [" "]
+    dyrcx1
+    +0x10
+    end
+    +0x10 --> dyrcx
+    
+    subgraph BLOCKDYRCX [" "]
+    dyrcx
+    +0x8
+    +0x68
+    end
+    +0x8 --> pfr
+    
+    subgraph BLOCKPFR [" "]
+    pfr
+    +0x23C
+    end
+    
+    +0x23C --> fr["framerate: float"]
+    +0x68 --> ft["frametime: double"]
+    
+classDef block fill:#f4f7fb,color:#2b3a55;
+classDef addr fill:#d7e3f4,color:#2b3a55;
+classDef offset fill:none,stroke:none,color:#e57373,font-style:italic;
+classDef var fill:#ebe6f9,color:#3b3363,font-weight:bold;
+
+class funcaddr,dyrcx1,dyrcx,pfr addr;
+class +0xA758,+0x10,+0x8,+0x23C,+0x68 offset;
+class funcname,fr,ft var;
+    %%class BLOCKFUNCADDR,BLOCKDYRCX1,BLOCKDYRCX,BLOCKPFR block

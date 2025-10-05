@@ -122,9 +122,9 @@ float FpsSetter::getFps()
     if (!(
                 openHandle()||checkGameLiving()
         )) return 0;
-#ifdef USELOG
-    qInfo()<<"从"<<(preframerateaddr+FR_OFFSET)<<"读出实时帧率..";
-#endif
+
+    qInfo()<<"从"<<std::ios::hex<<(preframerateaddr+FR_OFFSET)<<std::ios::dec<<"读出实时帧率..";
+
     float framerate;
     if (!ReadProcessMemory(processHandle, (LPVOID)(preframerateaddr+FR_OFFSET), &framerate, sizeof(framerate), nullptr))
     {
@@ -160,7 +160,7 @@ bool FpsSetter::openHandle()
     processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processID);
     if (!processHandle)
     {
-        qDebug()<<"无法访问进程"<<processID;
+        qCritical()<<"无法访问进程"<<processID;
         ErrorReporter::instance()->receive(ErrorReporter::严重,"无法访问进程");
         bad = true;
         return false;

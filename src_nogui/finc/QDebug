@@ -2,6 +2,7 @@
 // Created by Tofu on 2025/6/27.
 //
 
+//@ref DevDoc/log.cov.md
 #ifndef DWRGFPSUNLOCKER_QDEBUG_H
 #define DWRGFPSUNLOCKER_QDEBUG_H
 
@@ -10,18 +11,18 @@
 namespace Qt{
     static auto hex = std::hex;
 }
-#ifdef _DEBUG
-#define qInfo() std::cout
-#define qWarning() std::cout
-#define qDebug() std::cout
-#define qFatal() std::cerr
-#define qCritical() std::cerr
-#else
-#define qInfo() if(false) std::cout
-#define qWarning() if(false) std::cout
-#define qDebug() if(false) std::cout
-#define qFatal() std::cerr
-#define qCritical() std::cerr
-#endif
+//不区分USE_LOG，黑框就算log
+#define qFatal qCritical
 
+#ifndef _DEBUG
+    #define qInfo() if(false) std::cou?//因为没区分log和黑框 因此info就显得啰嗦了
+    #define qWarning() std::cout
+    #define qDebug() if(false) std::cout
+    #define qCritical() std::cerr
+#else
+    #define qInfo() std::cout
+    #define qWarning() std::cout
+    #define qDebug() std::cout
+    #define qCritical() std::cerr
+#endif
 #endif //DWRGFPSUNLOCKER_QDEBUG_H

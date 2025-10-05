@@ -2,7 +2,6 @@
 #ifndef UPDATE_CHECKER_H
 #define UPDATE_CHECKER_H
 
-#include "macroes.h"
 #include "updtdialog.h"
 
 #include <QNetworkAccessManager>
@@ -35,7 +34,12 @@ private:
 
 };
 
-inline const QString UpdateChecker::filename = "dwrgFpsUnlocker.zip";
+inline const QString UpdateChecker::filename =
+#ifdef GUI_BUILD_SINGLE
+    "dwrgFpsUnlocker.exe";
+#else
+        "dwrgFpsUnlocker.zip"
+#endif
 
 
 #endif //UPDATE_CHECKER_H
