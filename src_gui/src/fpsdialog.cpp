@@ -1,8 +1,10 @@
 #include "ui_fpsdialog.h"
 #include "fpsdialog.h"
-#include "../../common/inc/storage.h"
+#include "storage.h"
 #include "fpssetter.h"
 #include "version.h"
+
+#include <QHotKey>
 
 #include <QMessageBox>
 #include <QTime>
@@ -34,6 +36,17 @@ FpsDialog::FpsDialog(QWidget *parent)
 
     checkload();
 
+    QHotkey* f5 = new QHotkey(QKeySequence(Qt::Key_F5), this);
+
+    connect(f5, &QHotkey::activated, this, [&]()
+    {
+        static bool usedefault = false;
+        usedefault = !usedefault;
+        if (usedefault)
+            applyFPS(60);
+        else
+            on_applybutton_pressed();
+    });
     connect(ErrorReporter::instance(), &ErrorReporter::report, this, &FpsDialog::showError);
 }
 
@@ -54,7 +67,13 @@ void FpsDialog::on_applybutton_pressed()
         ErrorReporter::instance()->receive(ErrorReporter::ErrorInfo{"错误", "输入的帧数需要是正整数"});
         return;
     }
-    setter->setFps(fpsstr.toInt()/*不合法的数值将会返回0*/);
+
+    applyFPS(fpsstr.toInt()/*不合法的数值将会返回0*/);
+}
+
+void FpsDialog::applyFPS(int fps)
+{
+    setter->setFps(fps);
     set2tempread();
     Sleep(QRandomGenerator::global()->bounded(200, 700));
 }

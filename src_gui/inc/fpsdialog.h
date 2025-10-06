@@ -4,8 +4,6 @@
 #include "errreport.h"
 
 #include <QDialog>
-#include <QGraphicsDropShadowEffect>
-#include <QTimer>
 
 #include "env.h"
 
@@ -23,11 +21,11 @@ class FpsDialog : public QDialog
     Ui::dwrgFpsSetter *ui;
     FpsSetter* setter;
 
-    QTimer *frupdatereminder;
+    QTimer *frupdatereminder; // 帧率tag刷新定时器
     bool keepupdate;
     QPalette frpalette;
 
-    QTimer *tmpreadtimer;
+    QTimer *tmpreadtimer; // 临时帧率显示定时器
 public:
     FpsDialog(QWidget *parent = nullptr);
     ~FpsDialog();
@@ -64,6 +62,7 @@ private:
 
     void updateFR();
     // QGraphicsDropShadowEffect* buttonShadow;
+    void applyFPS(int fps);
 
     void closeEvent(QCloseEvent* event) override
     {

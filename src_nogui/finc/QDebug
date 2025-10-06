@@ -6,23 +6,39 @@
 #ifndef DWRGFPSUNLOCKER_QDEBUG_H
 #define DWRGFPSUNLOCKER_QDEBUG_H
 
+#include <iostream>
 #include <ios>
 
 namespace Qt{
-    static auto hex = std::hex;
+    inline auto& hex = std::hex;
+    inline auto& dec = std::dec;
 }
-//不区分USE_LOG，黑框就算log
-#define qFatal qCritical
+//nonono因为ErrReport所以不能接受log了
 
-#ifndef _DEBUG
-    #define qInfo() if(false) std::cou?//因为没区分log和黑框 因此info就显得啰嗦了
-    #define qWarning() std::cout
-    #define qDebug() if(false) std::cout
-    #define qCritical() std::cerr
-#else
-    #define qInfo() std::cout
-    #define qWarning() std::cout
-    #define qDebug() std::cout
-    #define qCritical() std::cerr
-#endif
+class HoleBuffer:public std::streambuf{
+protected:
+    int overflow(int c) override
+    {
+        return c;
+    }
+    int sync() override
+    {
+        return 0;
+    }
+};
+
+class HoleStream:public std::ostream{
+public:
+    HoleStream(): std::ostream(&holebuffer){}
+private:
+    HoleBuffer holebuffer;
+};
+
+inline static HoleStream null;
+
+#define qDebug() null
+#define qInfo() null
+#define qWarning() null
+#define qCritical() null
+
 #endif //DWRGFPSUNLOCKER_QDEBUG_H

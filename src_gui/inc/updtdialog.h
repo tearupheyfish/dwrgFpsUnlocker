@@ -17,10 +17,10 @@ class UpdateDialog : public QDialog
     Ui::UpdateInformer *ui;
     QProgressBar* progressBar = nullptr;
     class UpdateChecker *uc;
-    bool speedcheck = false;
+
 public:
     explicit UpdateDialog(QWidget *parent = nullptr);
-    ~UpdateDialog();
+    ~UpdateDialog() override;
     void setRelativeData(UpdateChecker& checker)
     {
         uc = &checker;
@@ -53,7 +53,6 @@ private slots:
     {
         emit InformerClose();
     }
-
 };
 
 #endif // UPDATEINFORMER_H

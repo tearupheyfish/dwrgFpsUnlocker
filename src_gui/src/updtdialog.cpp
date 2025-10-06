@@ -6,6 +6,7 @@
 #include <QDesktopServices>
 #include <QLayout>
 #include <QPropertyAnimation>
+#include <QTimer>
 
 UpdateDialog *informer_r = nullptr;
 
@@ -15,16 +16,8 @@ UpdateDialog::UpdateDialog(QWidget *parent)
     ui->setupUi(this);
 
     setFixedSize(width(), height());
-//    opaeff = new QGraphicsOpacityEffect(ui->manual_button);
-//    opaeff->setOpacity(0);
-//    ui->manual_button->setGraphicsEffect(opaeff);
-    ui->manual_button->hide();
 
-//    opaanim = new QPropertyAnimation(opaeff, "opacity");
-//    opaanim->setDuration(1000);
-//    opaanim->setStartValue(0);
-//    opaanim->setEndValue(1);
-//    opaanim->setEasingCurve(QEasingCurve::Linear);
+    ui->manual_button->hide();
 }
 
 UpdateDialog::~UpdateDialog()
@@ -37,16 +30,16 @@ void UpdateDialog::set_version(const QString &ver) {
 }
 
 void UpdateDialog::on_updatebutton_pressed() {
-    uc->Update();
+    uc->doDownload();
 }
 
 // 切换到进度条模式
 void UpdateDialog::switch_to_progress_bar()
 {
-    // 如果已有进度条，则直接返回
     if (progressBar != nullptr)
         return;
 
+    //隐藏版本号tag和更新按钮
     ui->version->hide();
     ui->updatebutton->hide();
 
@@ -61,15 +54,32 @@ void UpdateDialog::switch_to_progress_bar()
 void UpdateDialog::update_progress(qint64 bytesReceived, qint64 bytesTotal) {
     auto val = bytesTotal ? bytesReceived * 100 / bytesTotal : 0;
     progressBar->setValue(val);
-    if(speedcheck == true)
+
+    /* 事件 ① 耗时 > 7s ② 显示按钮 ③ 进度>20
+     * 条件 ① 速率 < 50kB/s
+     */
+    static enum STAGE{SOON, LONGTIME, SHOWN, HOPEFUL}stage = SOON;
+    auto usedtime = uc->downloadtimecost->elapsed();
+    switch (stage)
     {
-        if(bytesReceived/10.f/1024 < 50)
+    case SOON:
+        if (usedtime > 7000)
+                stage = LONGTIME;
+    case LONGTIME:
+        //到时间才进行速率检测
+        if (stage == LONGTIME && bytesReceived/usedtime < 50)
+        {
             showManualButton();
-        speedcheck = false;
-    }
-    if(!ui->manual_button->isHidden() && val > 50)
-    {
-        hideManualButton();
+            stage = SHOWN;
+        }
+    case SHOWN:
+        if (val > 20)
+        {
+            hideManualButton();
+            stage = HOPEFUL;
+        }
+    case HOPEFUL:
+        ;
     }
 }
 

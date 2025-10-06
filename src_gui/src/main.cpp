@@ -13,12 +13,11 @@
 #include <QFile>
 #include <memory>
 
-//todo: 处理日志
 void prtEnvInfo()
 {
     qInfo()<<"====环境信息========================";
     qInfo()<< PrintProcessGroups();
-    qInfo()<< "版本: "<<VERSION_STRING<<'\n';
+    qInfo()<< "版本: "<<VERSION_STRING;
 }
 
 //@ref DevDoc/logging.cov.md

@@ -12,34 +12,37 @@
 
 #include <iostream>
 
+#ifdef GUI_BUILD_SINGLE
+constexpr auto downloadfilename = "dwrgFpsUnlocker.exe";
+constexpr auto updaterfilename = "dwrgFpsUnlocker.exe";
+#else
+constexpr auto downloadfilename = "dwrgFpsUnlocker.zip";
+constexpr auto updaterfilename = "updater.exe";
+#endif
+
 class UpdateChecker : public QObject {
 Q_OBJECT
-
-    QString downloadurl;
-    static const QString filename;
     UpdateDialog& informer;
 public:
     UpdateChecker(UpdateDialog &ifm, QObject *parent = nullptr);
+    ~UpdateChecker();
 
     void checkUpdate();
 
-    void Update();
+    void doDownload();
 signals:
     void noUpdateAvailable();
 private:
+    //网络管理器（实际上只会用一次）
     QNetworkAccessManager* manager;
-    QTimer* speedtesttimer;
+    //
+    class QElapsedTimer* downloadtimecost;
 
-    void downloadPacakge(const QString& url, const QString& filename);
+    void doUpdate(const QDir&);
 
+    QUrl downloadurl;
+
+    friend class UpdateDialog;
 };
-
-inline const QString UpdateChecker::filename =
-#ifdef GUI_BUILD_SINGLE
-    "dwrgFpsUnlocker.exe";
-#else
-        "dwrgFpsUnlocker.zip"
-#endif
-
 
 #endif //UPDATE_CHECKER_H

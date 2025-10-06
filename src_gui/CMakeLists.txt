@@ -7,14 +7,21 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
+if(MSVC )
+    if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options(/GL /O1) #连同所有依赖都加了个/GL，只是从17MB减小到16.9MB，我真不行了吧 --25.10.6
+        add_link_options(/OPT:REF /OPT:ICF /LTCG)
+    endif()
+endif ()
+
 if(GUI_BUILD_SINGLE)
     find_package(Qt6Keychain CONFIG REQUIRED)
     add_compile_definitions(GUI_BUILD_SINGLE)#为了不影响nogui的storage编译
 endif ()
-
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Network)
 add_compile_definitions(NOMINMAX)#windows.h的minmax宏和ylt打架
 find_package(yalantinglibs CONFIG REQUIRED)
+find_package(QHotKey CONFIG REQUIRED)
 
 
 include_directories("${COMMON_DIR}/inc" "./inc")
@@ -32,12 +39,11 @@ qt_add_executable(dwrgFpsUnlocker
         ${RES_DIR}/.rc
 )
 
-if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_link_options(/OPT:REF /OPT:ICF)
-endif()
+
 target_link_libraries(dwrgFpsUnlocker PRIVATE
         Qt6::Widgets Qt6::Network
         $<$<BOOL:${GUI_BUILD_SINGLE}>:Qt6Keychain::Qt6Keychain>
+        qhotkey
         yalantinglibs::yalantinglibs)
 
 set_target_properties(dwrgFpsUnlocker PROPERTIES

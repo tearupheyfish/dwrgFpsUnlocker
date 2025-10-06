@@ -5,6 +5,7 @@
 #include <vector>
 
 uintptr_t getProcAddressExBuffered(HANDLE hProcess, uintptr_t moduleBase, const char* symbolName) {
+    //获取DOS头
     SIZE_T bytesRead;
     IMAGE_DOS_HEADER dosHeader = {};
     if (!ReadProcessMemory(hProcess, (LPCVOID)moduleBase, &dosHeader, sizeof(dosHeader), &bytesRead))
@@ -12,6 +13,7 @@ uintptr_t getProcAddressExBuffered(HANDLE hProcess, uintptr_t moduleBase, const 
     if (dosHeader.e_magic != IMAGE_DOS_SIGNATURE)
         return 0;
 
+    //解析NT位置并获取
     IMAGE_NT_HEADERS ntHeaders = {};
     uintptr_t ntHeaderAddr = moduleBase + dosHeader.e_lfanew;
     if (!ReadProcessMemory(hProcess, (LPCVOID)ntHeaderAddr, &ntHeaders, sizeof(ntHeaders), &bytesRead))
@@ -19,6 +21,7 @@ uintptr_t getProcAddressExBuffered(HANDLE hProcess, uintptr_t moduleBase, const 
     if (ntHeaders.Signature != IMAGE_NT_SIGNATURE)
         return 0;
 
+    //获取导出表
     auto& expData = ntHeaders.OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
     if (expData.VirtualAddress == 0 || expData.Size == 0)
         return 0;

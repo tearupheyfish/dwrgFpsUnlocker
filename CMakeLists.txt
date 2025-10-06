@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 
-set(APP_VERSION "2.4.1")  #版本号
+set(APP_VERSION "2.4")  #版本号
 option(GUI_BUILD_SINGLE "编译单个可执行文件（静态链接）" OFF)
 option(USE_LOG "打印日志" OFF)
 option(PRE_RELEASE "预发布版本" OFF)
@@ -26,7 +26,6 @@ file(GLOB RES_DIR "resource")  #资源目录绝对路径
 add_subdirectory("updater")
 add_subdirectory("src_gui")
 add_subdirectory("src_nogui")
-
 
 
 

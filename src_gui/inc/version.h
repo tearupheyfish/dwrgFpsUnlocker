@@ -8,14 +8,13 @@
 #include <QRegularExpression>
 #include <QString>
 
-//todo:支持不定长版本号比较
+
 struct Version {
     std::vector<uint8_t> verchain;
     std::optional<QString> verstring;
 
     // 构造函数，解析传入的版本号字符串
-explicit
-    Version(const QString& vstr) {
+    Version(const QString& vstr = "0.0") {
         //左侧是 [开头(^)|.|v] 且右侧是 [结尾($)|.|-] 的 整数(\d)+
         QRegularExpression re(R"((?:^|\.|v)(\d+)(?=\.|-|$))");
         auto it = re.globalMatch(vstr);
@@ -41,6 +40,7 @@ explicit
     }
 
     // 版本号转换为字符串格式
+explicit
     operator const QString&() {
         if(!verstring.has_value()) {
             QStringList parts;
@@ -53,9 +53,9 @@ explicit
     }
 
 [[nodiscard]]
-    QString toQString(int lenth = 2)
+    QString toQString(int lenth = -1)
     {
-        return operator const QString&().sliced(0, 1+2*(lenth-1)+1);
+        return operator const QString&().sliced(0, 1+2*((lenth<=0?verchain.size():lenth)-1)+1);
     }
 };
 
