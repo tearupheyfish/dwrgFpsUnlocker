@@ -63,6 +63,7 @@ public:
      * 原因：只是因为初始化需要的进程id没写在这里 */ //question: 什么意思？
     FpsSetter(DWORD pid);
     FpsSetter():bad(true), fpsbad(true), processHandle(NULL), autoxprocesstimer(nullptr){};
+    static FpsSetter* create(DWORD pid = NULL);
 
     FpsSetter(const FpsSetter&) = delete;
     FpsSetter& operator=(const FpsSetter&) = delete;

@@ -19,13 +19,12 @@ class AppLifeManager:public QObject{
     Q_OBJECT
     QApplication& app;
     UpdateChecker& udck;
-    FpsSetter& setter;
     FpsDialog& wMain;
     UpdateDialog& wInfm;
 
     bool mainclosed, informerclosed;
 public:
-    AppLifeManager(QApplication &a, UpdateChecker& udc, FpsDialog& wm, UpdateDialog& winf, FpsSetter& setter);
+    AppLifeManager(QApplication &a, UpdateChecker& udc, FpsDialog& wm, UpdateDialog& winf);
 private slots:
     void mainquitonly();
     void informerquitonly();

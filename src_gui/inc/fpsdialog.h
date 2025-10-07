@@ -26,22 +26,17 @@ class FpsDialog : public QDialog
     QPalette frpalette;
 
     QTimer *tmpreadtimer; // 临时帧率显示定时器
-public:
+
     FpsDialog(QWidget *parent = nullptr);
+public:
+    static FpsDialog* create();
     ~FpsDialog();
 
-    void setRelativedData(FpsSetter& setter)
-    {
-        this->setter = &setter;
-        if(ui->autoappradio->isChecked())
-            dobuttonpress();
-    }
     void set2tempread();
     void dobuttonpress()
     {
         on_applybutton_pressed();
     }
-
 signals:
     void MainWinClose();
     void ErrOccured();

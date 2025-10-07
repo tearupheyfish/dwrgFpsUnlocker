@@ -8,12 +8,10 @@
 //#include "updateinformer.h"
 #include "fpssetter.h"
 
-AppLifeManager::AppLifeManager(QApplication &a, UpdateChecker &udc, FpsDialog &wm, UpdateDialog &winf, FpsSetter& setter) :
-        app(a), udck(udc), wMain(wm), wInfm(winf), setter(setter)
-        ,mainclosed(false), informerclosed(false)
+AppLifeManager::AppLifeManager(QApplication &a, UpdateChecker& udc, FpsDialog& wm, UpdateDialog& winf) :
+app(a), udck(udc), wMain(wm), wInfm(winf),
+mainclosed(false), informerclosed(false)
 {
-//    app.setQuitOnLastWindowClosed(true);
-
     connect(&udck, &UpdateChecker::noUpdateAvailable, this, &AppLifeManager::informerquitonly);
 
 
@@ -22,6 +20,8 @@ AppLifeManager::AppLifeManager(QApplication &a, UpdateChecker &udc, FpsDialog &w
 
     connect(&wInfm, &UpdateDialog::InformerClose, this, &AppLifeManager::informerquitonly);
 }
+
+//对一个尚未show的窗口close不会触发closeEvent。。。
 
 void AppLifeManager::mainquitonly() {
     wMain.close();

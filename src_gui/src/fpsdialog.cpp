@@ -47,12 +47,20 @@ FpsDialog::FpsDialog(QWidget *parent)
         else
             on_applybutton_pressed();
     });
-    connect(ErrorReporter::instance(), &ErrorReporter::report, this, &FpsDialog::showError);
+    connect(ErrorReporter::instance(), &ErrorReporter::report, this, &FpsDialog::showError, Qt::QueuedConnection);
+}
+
+FpsDialog* FpsDialog::create()
+{
+    auto w = new FpsDialog;
+    w->setter =FpsSetter::create();
+    return w;
 }
 
 FpsDialog::~FpsDialog()
 {
     saveprofile();
+    delete setter;
     delete ui;
 }
 
@@ -97,15 +105,11 @@ void bootfixup()
 void FpsDialog::showError(const ErrorReporter::ErrorInfo& einf)
 {
     QMessageBox::critical(this,einf.level,einf.msg);
-//    if (einf.level == "修复")
-//    {
-//        atexit(bootfixup);
-//            goto quit;
-//    }
     if (einf.level == ErrorReporter::严重)
     {
         qCritical()<<einf.msg;
-        emit ErrOccured();
+        // emit ErrOccured();
+        this->close();
     }
 }
 

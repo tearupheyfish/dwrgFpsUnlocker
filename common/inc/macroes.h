@@ -5,7 +5,7 @@
 #ifndef DWRGFPSUNLOCKER_MACROES_H
 #define DWRGFPSUNLOCKER_MACROES_H
 
-#define VERSION_STRING "2.4.1"
+#define VERSION_STRING "2.4"
 /* #undef PRE_RELEASE */
 /* #undef USE_LOG */
 

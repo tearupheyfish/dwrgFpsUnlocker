@@ -31,6 +31,23 @@ FpsSetter::FpsSetter(DWORD pid):
     }
     std::cout<<"系统页面粒度"<<*allocrice<<'\n';*/
 }
+FpsSetter* FpsSetter::create(DWORD pid)
+{
+    if (!pid)
+    {
+        HWND targetWindow = FindWindowW(nullptr, L"第五人格");
+        if (!targetWindow)
+        {
+            qCritical()<<"未找到游戏窗口";
+            ErrorReporter::instance()->receive({ErrorReporter::严重,"未找到第五人格窗口"});
+            return {};
+        }
+
+        GetWindowThreadProcessId(targetWindow, &pid);
+    }
+
+    return new FpsSetter(pid);
+}
 
 //不可拷贝的部分：processHandle（）、autoxtimer（除非可以reset指针）
 FpsSetter::FpsSetter(FpsSetter &&right) noexcept
