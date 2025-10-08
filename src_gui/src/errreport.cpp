@@ -13,7 +13,6 @@ ErrorReporter::ErrorReporter(QObject *parent)
 
 void ErrorReporter::receive(const ErrorInfo& error) {
     QMutexLocker locker(&mutex);    // 加锁保证线程安全
-    errqueue.enqueue(error);     // 将错误放入队列中
 
     // 发射信号通知消费错误
     emit report(error);

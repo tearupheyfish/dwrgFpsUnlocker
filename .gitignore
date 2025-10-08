@@ -2,6 +2,9 @@
 # ----------------------------------------------------------------------------
 
 .idea/
+build*/
+deploy/
+others
 
 *~
 *.autosave
@@ -77,5 +80,3 @@ CMakeLists.txt.user*
 .pch/
 .rcc/
 .uic/
-/build*/
-/deploy/

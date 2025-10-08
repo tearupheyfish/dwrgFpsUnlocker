@@ -77,12 +77,12 @@ void UpdateChecker::checkUpdate() {
 
     QNetworkReply* reply = manager->get(request);
 
-    connect(reply, &QNetworkReply::errorOccurred, [=]() {
+    connect(reply, &QNetworkReply::errorOccurred, []() {
         // ErrorReporter::instance()->receive(ErrorReporter::警告, "检查更新失败");
             qWarning()<<"更新失败：无法访问发布页";
     });
 
-    connect(reply, &QNetworkReply::finished, this, [=]() {
+    connect(reply, &QNetworkReply::finished, this, [reply, this]() {
         if(reply->error() != QNetworkReply::NoError)
         {
             reply->deleteLater();

@@ -28,7 +28,6 @@ private:
 explicit
     ErrorReporter(QObject *parent = nullptr);
     QMutex mutex;
-    QQueue<ErrorInfo> errqueue;
 };
 
 #endif

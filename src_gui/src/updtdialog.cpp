@@ -5,7 +5,6 @@
 
 #include <QDesktopServices>
 #include <QLayout>
-#include <QPropertyAnimation>
 #include <QTimer>
 
 UpdateDialog *informer_r = nullptr;
