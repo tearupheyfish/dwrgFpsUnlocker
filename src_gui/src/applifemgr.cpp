@@ -28,7 +28,9 @@ void AppLifeManager::trustee(FpsDialog* dialog)
 {
     windows.push_back(dialog);
     qDebug()<<"记录窗口:"<<Qt::hex<<dialog;
-    QObject::connect(dialog, &FpsDialog::SetterClosed, this, &AppLifeManager::setterclosed);
+    QObject::connect(dialog, &FpsDialog::SetterClosed, this, &AppLifeManager::setterclosed, Qt::QueuedConnection);
+    //破案了，窗口的closeEvent函数发送了SetterClose，DirectConnect->setterclosed就把窗口本身删了 1h --25.12.30
+    //question: 奇怪的是跟随启动的窗口和主动启动的好窗口不会这样
 }
 
 template<>

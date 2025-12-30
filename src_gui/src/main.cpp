@@ -106,11 +106,11 @@ int main_setter(int argc, char *argv[])
     AppTray tray;
     tray.show();
     //应该是direct类型
-    QObject::connect(&tray, &QSystemTrayIcon::activated, [&lifemgr](const QSystemTrayIcon::ActivationReason reason)
+    QObject::connect(&tray, &QSystemTrayIcon::activated, [&](const QSystemTrayIcon::ActivationReason reason)
     {
         if (reason == QSystemTrayIcon::DoubleClick)
         {
-            lifemgr.delever<FpsDialog>();
+            defaultlaunch();
         }
     });
 

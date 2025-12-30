@@ -17,11 +17,11 @@ FpsDialog::FpsDialog(DWORD pid, QWidget *parent)
     frpalette = ui->curframerate->palette();
     checkchangePalette();
 
-    frupdateremider = new QTimer(ui->curframerate);
+    frupdateremider = new QTimer(this);
     frupdateremider->setInterval(1500);
     connect(frupdateremider, &QTimer::timeout, this, &FpsDialog::updateFR);
 
-    tmpreadtimer = new QTimer(ui->curframerate);
+    tmpreadtimer = new QTimer(this);
     tmpreadtimer->setSingleShot(true);
     tmpreadtimer->setInterval(6600);
     connect(tmpreadtimer, &QTimer::timeout, this, &FpsDialog::dissmissFR);
