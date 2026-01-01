@@ -33,44 +33,9 @@ UpdateChecker::~UpdateChecker()
     // manager 注册了 child 所以不用删
 }
 
-std::pair<Version, QString> getLastestVersion(const QJsonArray& releases)
-{
-    Version latestVersion;
-    QString downloadurl;
-
-    for(const QJsonValue &releaseVal: releases) {
-        QJsonObject releaseObj = releaseVal.toObject();
-#ifdef PRE_RELEASE
-        if(releaseObj["prerelease"].toBool())
-#endif
-        {
-            auto tag_name = releaseObj["tag_name"].toString();
-            Version version(tag_name);
-            if(version > latestVersion) {
-                QJsonArray assets = releaseObj["assets"].toArray();
-                for (const QJsonValue &assetVal : assets) {
-                    QJsonObject asset = assetVal.toObject();
-                    if (asset["name"].toString() == downloadfilename) {
-                        //要同时有新版本和可下载的文件才算有可用更新
-                        downloadurl = asset["browser_download_url"].toString();
-                        latestVersion = version;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    return {latestVersion, downloadurl};
-}
-
 void UpdateChecker::checkUpdate() {
     QUrl query_url(
-#ifdef PRE_RELEASE
     "https://api.github.com/repos/tearupheyfish/dwrgFpsUnlocker/releases"
-#else
-    "https://api.github.com/repos/tearupheyfish/dwrgFpsUnlocker/releases/latest"
-#endif
     );
 
     QNetworkRequest request(query_url);
@@ -95,17 +60,34 @@ void UpdateChecker::checkUpdate() {
         QJsonDocument doc = QJsonDocument::fromJson(reply->readAll());
         reply->deleteLater();
 
-        QJsonArray releases
+        QJsonArray releases = doc.array();
+
+        Version latestVersion = Version::current;
+
+        for(const QJsonValue &releaseVal: releases) {
+            QJsonObject releaseObj = releaseVal.toObject();
 #ifdef PRE_RELEASE
-         = doc.array();
-#else
-        = {doc.object()};
+            if(releaseObj["prerelease"].toBool())
 #endif
+            {
+                auto tag_name = releaseObj["tag_name"].toString();
+                Version version(tag_name);
+                if(version > latestVersion) {
+                    QJsonArray assets = releaseObj["assets"].toArray();
+                    for (const QJsonValue &assetVal : assets) {
+                        QJsonObject asset = assetVal.toObject();
+                        if (asset["name"].toString() == downloadfilename) {
+                            //要同时有新版本和可下载的文件才算有可用更新
+                            downloadurl = asset["browser_download_url"].toString();
+                            latestVersion = version;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
-        Version latestVersion;
-        std::tie(latestVersion, downloadurl) = getLastestVersion(releases);
-
-        if (latestVersion > QApplication::applicationVersion()) {
+        if (latestVersion != Version::current) {
                 informer.set_version(latestVersion.toQString());
 
                 informer.show();

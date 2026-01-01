@@ -12,6 +12,7 @@
 
 
 struct Version {
+    static Version current;
     std::vector<uint8_t> verchain;
     std::optional<QString> verstring;
 
@@ -41,6 +42,11 @@ struct Version {
 
     }
 
+    bool operator==(const Version& right) const
+    {
+        return verchain == right.verchain;
+    }
+
     // 版本号转换为字符串格式
 explicit
     operator const QString&() {
@@ -60,5 +66,6 @@ explicit
         return operator const QString&().sliced(0, 1+2*((lenth<=0?verchain.size():lenth)-1)+1);
     }
 };
+inline Version Version::current{VERSION_STRING};
 
 #endif //DWRGFPSUNLOCKER_VERSION_H

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
 
-set(APP_VERSION "3.2.1")  #版本号
+set(APP_VERSION "3.2.2")  #版本号
 option(BUILD_GUI "编译图形用户界面版本" ON)
 option(BUILD_SINGLE "编译单个可执行文件（Qt静态链接）" OFF)
 option(USE_LOG "打印日志" OFF)
