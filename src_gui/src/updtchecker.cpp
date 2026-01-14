@@ -15,8 +15,13 @@
 
 
 #ifdef BUILD_SINGLE
+#ifdef BUILTIN_MT
+constexpr auto downloadfilename = "dwrgFpsUnlocker_bio.exe";
+constexpr auto updaterfilename = "dwrgFpsUnlocker_bio.exe";
+#else
 constexpr auto downloadfilename = "dwrgFpsUnlocker.exe";
 constexpr auto updaterfilename = "dwrgFpsUnlocker.exe";
+#endif
 #else
 constexpr auto downloadfilename = "dwrgFpsUnlocker.zip";
 constexpr auto updaterfilename = "updater.exe";

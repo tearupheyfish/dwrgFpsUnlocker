@@ -17,6 +17,7 @@
 
 - `USE_LOG`:启用日志（仅gui）
 - `PRE_RELEASE`:编译预发布线
+- `BUILTIN_MT`: 链接静态多线程
 
 ### 编译选项
 - `BUILD_SINGLE`:使用系统存储（wincred)|ON则静态编译单文件

@@ -6,9 +6,14 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-if (MSVC AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(/Os /Oy /Ob0 /Gy)
-    add_link_options(/OPT:REF /OPT:ICF /LTCG /INCREMENTAL:NO /MERGE:.rdata=.text)
+if (MSVC)
+    if(BUILTIN_MT)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    endif ()
+    if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_compile_options(/Os /Oy /Ob0 /Gy)
+        add_link_options(/OPT:REF /OPT:ICF /LTCG /INCREMENTAL:NO /MERGE:.rdata=.text)
+    endif ()
 endif ()
 
 find_package(Qt6 CONFIG REQUIRED COMPONENTS Widgets Core Network)
@@ -44,6 +49,7 @@ target_compile_definitions(dwrgFpsUnlocker PRIVATE
         $<$<BOOL:${BUILD_SINGLE}>:BUILD_SINGLE>
         $<$<BOOL:${USE_LOG}>:USE_LOG>
         $<$<BOOL:${PRE_RELEASE}>:PRE_RELEASE>
+        $<$<BOOL:${BUILTIN_MT}>:BUILTIN_MT>
 )
 target_link_libraries(dwrgFpsUnlocker PRIVATE
         Qt6::Widgets Qt6::Network
@@ -57,6 +63,7 @@ set_target_properties(dwrgFpsUnlocker PROPERTIES
         WIN32_EXECUTABLE TRUE
         VERSION ${PROJECT_VERSION}
         LINK_FLAGS "/MANIFESTUAC:\"level='requireAdministrator' uiAccess='false'\" /SUBSYSTEM:WINDOWS"
+        OUTPUT_NAME "$<IF:$<BOOL:${BUILTIN_MT}>,${PROJECT_NAME}_bio,${PROJECT_NAME}>"
 )
 
 
@@ -67,10 +74,9 @@ else()
     set(DEPLOY_DIR "${DEPLOY_DIR}/gui")
 endif()
 
-if (MSVC AND NOT CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "DLL")
+if (${BUILTIN_MT})
     string(APPEND DEPLOY_DIR "f")
 endif ()
-
 
     installmsg("### Preparing deployment directory...")
     install(CODE "
