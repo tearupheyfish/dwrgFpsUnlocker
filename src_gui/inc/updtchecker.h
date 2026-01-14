@@ -16,6 +16,7 @@ Q_OBJECT
     //网络管理器（实际上只会用一次）
     QNetworkAccessManager* manager;
     QUrl downloadurl;
+    QString hash2cert;
     //本质是记录时刻然后作差，所以不用担心放着影响性能
     QElapsedTimer downloadtimecost;
 public:
@@ -29,7 +30,7 @@ public slots:
     void checkUpdate();
 
 private:
-    void doUpdate(const QDir&);
+    static void doUpdate(const QDir&);
 };
 
 #endif //UPDATE_CHECKER_H

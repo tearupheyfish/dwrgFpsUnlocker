@@ -84,6 +84,8 @@ void UpdateChecker::checkUpdate() {
                         if (asset["name"].toString() == downloadfilename) {
                             //要同时有新版本和可下载的文件才算有可用更新
                             downloadurl = asset["browser_download_url"].toString();
+                            hash2cert = asset["digest"].toString().mid(7);
+                            qDebug()<<"filehash:"<<hash2cert;
                             latestVersion = version;
                             break;
                         }
@@ -107,6 +109,8 @@ void UpdateChecker::checkUpdate() {
 void UpdateChecker::doDownload() {
     QDir saveDir = QStandardPaths::writableLocation(QStandardPaths::TempLocation)+'/'+QApplication::applicationName();//默认为可执行文件名称
 
+    informer.switch_to_progress_bar();
+
     if (!saveDir.exists()
         && !saveDir.mkpath(saveDir.path()))
     {
@@ -118,7 +122,31 @@ void UpdateChecker::doDownload() {
     }
 
     QString savePath = saveDir.filePath(downloadfilename);
-    QFile* file = new QFile(savePath);
+    auto* file = new QFile(savePath);
+    if (file->exists())
+    {
+        file->open(QIODevice::ReadOnly);
+        QCryptographicHash hash(QCryptographicHash::Sha256);
+        hash.addData(file);
+        auto hashcode = hash.result().toHex();
+        qDebug()<<"curfilehash:"<<hashcode;
+        if (hashcode == hash2cert)
+        {
+            informer.progressBar->setValue(100);
+            QTimer::singleShot(300, this, [saveDir=std::move(saveDir)]()
+            {
+                UpdateChecker::doUpdate(saveDir);
+            });
+            delete file;
+            return;
+        }
+        else
+        {
+            QFile::remove(savePath);
+            file->close();
+        }
+    }
+
     if (!file->open(QIODevice::WriteOnly)) {
         qWarning() << "分配下载文件失败，路径:"<<savePath;
         return;
@@ -126,7 +154,6 @@ void UpdateChecker::doDownload() {
 
     QNetworkReply* reply = manager->get(QNetworkRequest(downloadurl));
     qInfo()<<"开始下载: "<<downloadurl;
-    informer.switch_to_progress_bar();
     downloadtimecost.start();
 
     connect(reply, &QNetworkReply::errorOccurred, [&](QNetworkReply::NetworkError error) {
