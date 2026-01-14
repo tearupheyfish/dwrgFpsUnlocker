@@ -1,5 +1,3 @@
-#set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded$<$<CONFIG:Debug>:Debug>DLL) # 这就是cmake默认参数
-
 # 转换COMMON_DIR为相对路径
 file(RELATIVE_PATH COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}" "${COMMON_DIR}")
 file(RELATIVE_PATH RES_DIR "${CMAKE_CURRENT_SOURCE_DIR}" "${RES_DIR}")
@@ -68,6 +66,10 @@ if(${BUILD_SINGLE})
 else()
     set(DEPLOY_DIR "${DEPLOY_DIR}/gui")
 endif()
+
+if (MSVC AND NOT CMAKE_MSVC_RUNTIME_LIBRARY MATCHES "DLL")
+    string(APPEND DEPLOY_DIR "f")
+endif ()
 
 
     installmsg("### Preparing deployment directory...")

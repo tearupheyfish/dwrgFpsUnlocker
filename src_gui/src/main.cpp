@@ -71,7 +71,7 @@ int main_setter(int argc, char *argv[])
     auto followlaunch = [&lifemgr](DWORD pid)
     {
         qInfo()<<"检测到游戏启动，pid:"<<pid;
-        QTimer::singleShot(3000, [&lifemgr,pid]()
+        QTimer::singleShot(5000, [&lifemgr,pid]()
         {
             lifemgr.delever<FpsDialog, DWORD>(pid);
         });
@@ -98,7 +98,7 @@ int main_setter(int argc, char *argv[])
 
     /// 监听跟随启动
     ProgStartListener listener;
-    // //lifemgr生命周期结束后于事件循环，所以引用安全
+    //lifemgr生命周期结束后于事件循环，所以引用安全
     QObject::connect(&listener, &ProgStartListener::processStarted, followlaunch);
     listener.start(QStringLiteral("dwrg.exe"), 3);
 
