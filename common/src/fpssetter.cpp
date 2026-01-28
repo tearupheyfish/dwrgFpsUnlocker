@@ -42,11 +42,13 @@ FpsSetter FpsSetter::create(DWORD pid)
     {
         // HWND hwd;
         auto hwd = queryTopCognWindow(L"第五人格");
+        if (!hwd) hwd = queryTopCognWindow(L"IdentityV");
+
         if (!hwd)
         {
-                qCritical()<<"未找到游戏窗口";
-                ErrorReporter::receive(ErrorReporter::警告,"未找到第五人格窗口");
-                return {};
+            qCritical()<<"未找到游戏窗口";
+            ErrorReporter::receive(ErrorReporter::警告,"未找到第五人格窗口");
+            return {};
         }
 
         GetWindowThreadProcessId(hwd, &pid);
